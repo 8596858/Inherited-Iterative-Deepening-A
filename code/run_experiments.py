@@ -111,6 +111,18 @@ if __name__ == '__main__':
             paths = cbs.find_solution_IDA(args.disjoint)
             num_of_nodes += cbs.get_expanded_nodes()
             total_time += cbs.get_time()
+        elif args.solver == "tt_IDA":
+            print("***Run Prioritized***")
+            cbs = CBSSolver(my_map, starts, goals)
+            paths = cbs.find_solution_tt_IDA(args.disjoint)
+            num_of_nodes += cbs.get_expanded_nodes()
+            total_time += cbs.get_time()
+        elif args.solver == "Q_Learning":
+            print("***Run Prioritized***")
+            cbs = CBSSolver(my_map, starts, goals)
+            paths = cbs.find_solution_Q_Learning(args.disjoint)
+            num_of_nodes += cbs.get_expanded_nodes()
+            total_time += cbs.get_time()
         elif args.solver == "Independent":
             print("***Run Independent***")
             solver = IndependentSolver(my_map, starts, goals)
