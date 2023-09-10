@@ -3,6 +3,7 @@ import argparse
 import glob
 from pathlib import Path
 from cbs import CBSSolver
+from map_generator import map_generator
 from independent import IndependentSolver
 from prioritized import PrioritizedPlanningSolver
 from visualize import Animation
@@ -79,6 +80,14 @@ if __name__ == '__main__':
                         help='Use the disjoint splitting')
     parser.add_argument('--solver', type=str, default=SOLVER,
                         help='The solver to use (one of: {CBS,Independent,Prioritized}), defaults to ' + str(SOLVER))
+    parser.add_argument('--size', type=int, default=10,
+                        help='The size of the map')
+    parser.add_argument('--agent_num', type=int, default=1,
+                        help='The num of the agents')
+    parser.add_argument('--obs_rate', type=int, default=0,
+                        help='The num of obstacles')
+    parser.add_argument('--map_num', type=int, default=1,
+                        help='The num of the map')
 
     args = parser.parse_args()
 
@@ -87,60 +96,65 @@ if __name__ == '__main__':
 
     num_of_nodes = 0
     total_time = 0
-    for file in sorted(glob.glob(args.instance)):
-
-        print("***Import an instance***")
-        my_map, starts, goals = import_mapf_instance(file)
-        print_mapf_instance(my_map, starts, goals)
-
+    # for file in sorted(glob.glob(args.instance)):
+    #
+    #     print("***Import an instance***")
+    #     my_map, starts, goals = import_mapf_instance(file)
+    #     print_mapf_instance(my_map, starts, goals)
+    size = args.size
+    agent_num = args.agent_num
+    obs_rate = args.obs_rate
+    num = args.map_num
+    maps = map_generator(size,agent_num,obs_rate, num)
+    for m in maps:
         if args.solver == "CBS":
             print("***Run CBS***")
-            cbs = CBSSolver(my_map, starts, goals)
+            cbs = CBSSolver(m["map"], m["start"], m["end"])
             paths = cbs.find_solution(args.disjoint)
             num_of_nodes += cbs.get_expanded_nodes()
             total_time += cbs.get_time()
         elif args.solver == "JPS":
             print("***Run Independent***")
-            cbs = CBSSolver(my_map, starts, goals)
+            cbs = CBSSolver(m["map"], m["start"], m["end"])
             paths = cbs.find_solution_JPS(args.disjoint)
             num_of_nodes += cbs.get_expanded_nodes()
             total_time += cbs.get_time()
         elif args.solver == "IDA":
             print("***Run Prioritized***")
-            cbs = CBSSolver(my_map, starts, goals)
+            cbs = CBSSolver(m["map"], m["start"], m["end"])
             paths = cbs.find_solution_IDA(args.disjoint)
             num_of_nodes += cbs.get_expanded_nodes()
             total_time += cbs.get_time()
         elif args.solver == "tt_IDA":
             print("***Run Prioritized***")
-            cbs = CBSSolver(my_map, starts, goals)
+            cbs = CBSSolver(m["map"], m["start"], m["end"])
             paths = cbs.find_solution_tt_IDA(args.disjoint)
             num_of_nodes += cbs.get_expanded_nodes()
             total_time += cbs.get_time()
         elif args.solver == "Q_Learning":
             print("***Run Prioritized***")
-            cbs = CBSSolver(my_map, starts, goals)
+            cbs = CBSSolver(m["map"], m["start"], m["end"])
             paths = cbs.find_solution_Q_Learning(args.disjoint)
             num_of_nodes += cbs.get_expanded_nodes()
             total_time += cbs.get_time()
         elif args.solver == "Independent":
             print("***Run Independent***")
-            solver = IndependentSolver(my_map, starts, goals)
+            solver = IndependentSolver(m["map"], m["start"], m["end"])
             paths = solver.find_solution()
         elif args.solver == "Prioritized":
             print("***Run Prioritized***")
-            solver = PrioritizedPlanningSolver(my_map, starts, goals)
+            solver = PrioritizedPlanningSolver(m["map"], m["start"], m["end"])
             paths = solver.find_solution()
         else:
             raise RuntimeError("Unknown solver!")
 
         cost = get_sum_of_cost(paths)
-        result_file.write("{},{}\n".format(file, cost))
+        # result_file.write("{},{}\n".format(file, cost))
 
 
         if not args.batch:
             print("***Test paths on a simulation***")
-            animation = Animation(my_map, starts, goals, paths)
+            animation = Animation(m["map"], m["start"], m["end"], paths)
             # animation.save("output.mp4", 1.0)
             animation.show()
     print("Total expanded nodes:", num_of_nodes)
