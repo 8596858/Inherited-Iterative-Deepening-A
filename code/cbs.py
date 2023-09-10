@@ -5,7 +5,8 @@ from single_agent_planner import compute_heuristics, a_star, get_location, get_s
 from JPS_agent_planner import a_star_JPS
 from IDA_agent_planner import ID_a_star
 from IDA_table_revision import tt_IDA
-from Q_Learning_method import Q_learning
+# from Q_Learning_method import Q_learning
+from Q_Learning import Q_learning
 
 
 def detect_collision(path1, path2):

@@ -115,3 +115,58 @@ def Q_learning(my_map, start_loc, goal_loc, h_values, agent, constraints):
         attempts += 1
 
     return path
+
+
+# def Q_learning(my_map, start_loc, goal_loc, h_values, agent, constraints):
+#     alpha = 0.9
+#     gamma = 0.9
+#     epsilon = 0.2  # for epsilon-greedy exploration
+#     num_actions = 5  # 4 directions + stay in place
+#
+#     constraint_table = build_constraint_table(constraints, agent)
+#     Q_table = np.zeros((len(my_map), len(my_map[0]), num_actions))
+#
+#     for episode in range(1000):  # number of training episodes
+#         curr_loc = start_loc
+#         while curr_loc != goal_loc:
+#             # Ensure that the current location is within the bounds of the map
+#             if not is_valid_move(curr_loc, my_map):
+#                 break
+#
+#             if np.random.uniform(0, 1) < epsilon:
+#                 # epsilon-greedy exploration
+#                 action = np.random.choice(num_actions)
+#             else:
+#                 action = np.argmax(Q_table[curr_loc[0], curr_loc[1], :])
+#
+#             next_loc = move(curr_loc, action)
+#
+#             # Check constraints
+#             constraint_type = is_constrained(curr_loc, next_loc, episode, constraint_table)
+#             if constraint_type == 2 or not is_valid_move(next_loc, my_map):
+#                 reward = -100  # penalty for invalid move
+#                 next_max = 0
+#             elif constraint_type == 1:
+#                 reward = 100  # reward for following positive constraint
+#                 next_max = np.max(Q_table[next_loc[0], next_loc[1], :])
+#             elif next_loc == goal_loc:
+#                 reward = 100  # reward for reaching the goal
+#                 next_max = 0
+#             else:
+#                 reward = -1  # small penalty for each step
+#                 next_max = np.max(Q_table[next_loc[0], next_loc[1], :])
+#
+#             # Q-learning update rule
+#             Q_table[curr_loc[0], curr_loc[1], action] += alpha * (reward + gamma * next_max - Q_table[curr_loc[0], curr_loc[1], action])
+#
+#             curr_loc = next_loc
+#
+#     # Extract the optimal path using the learned Q-values
+#     curr_loc = start_loc
+#     path = [curr_loc]
+#     while curr_loc != goal_loc:
+#         action = np.argmax(Q_table[curr_loc[0], curr_loc[1], :])
+#         curr_loc = move(curr_loc, action)
+#         path.append(curr_loc)
+#
+#     return path
