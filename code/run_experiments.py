@@ -94,8 +94,12 @@ if __name__ == '__main__':
 
     result_file = open("results.csv", "w", buffering=1)
 
-    num_of_nodes = 0
-    total_time = 0
+    # num_of_nodes = 0
+    # total_time = 0
+    num_of_nodes_a_star = 0
+    total_time_a_star = 0
+    num_of_nodes_IDA = 0
+    total_time_IDA = 0
     # for file in sorted(glob.glob(args.instance)):
     #
     #     print("***Import an instance***")
@@ -107,56 +111,88 @@ if __name__ == '__main__':
     num = args.map_num
     maps = map_generator(size,agent_num,obs_rate, num)
     for m in maps:
+        # if args.solver == "CBS":
+        #     print("***Run CBS***")
+        #     cbs = CBSSolver(m["map"], m["start"], m["end"])
+        #     paths = cbs.find_solution(args.disjoint)
+        #     num_of_nodes += cbs.get_expanded_nodes()
+        #     total_time += cbs.get_time()
+        # elif args.solver == "JPS":
+        #     print("***Run Independent***")
+        #     cbs = CBSSolver(m["map"], m["start"], m["end"])
+        #     paths = cbs.find_solution_JPS(args.disjoint)
+        #     num_of_nodes += cbs.get_expanded_nodes()
+        #     total_time += cbs.get_time()
+        # elif args.solver == "IDA":
+        #     print("***Run Prioritized***")
+        #     cbs = CBSSolver(m["map"], m["start"], m["end"])
+        #     paths = cbs.find_solution_IDA(args.disjoint)
+        #     num_of_nodes += cbs.get_expanded_nodes()
+        #     total_time += cbs.get_time()
+        # elif args.solver == "tt_IDA":
+        #     print("***Run Prioritized***")
+        #     cbs = CBSSolver(m["map"], m["start"], m["end"])
+        #     paths = cbs.find_solution_tt_IDA(args.disjoint)
+        #     num_of_nodes += cbs.get_expanded_nodes()
+        #     total_time += cbs.get_time()
+        # elif args.solver == "Q_Learning":
+        #     print("***Run Prioritized***")
+        #     cbs = CBSSolver(m["map"], m["start"], m["end"])
+        #     paths = cbs.find_solution_Q_Learning(args.disjoint)
+        #     num_of_nodes += cbs.get_expanded_nodes()
+        #     total_time += cbs.get_time()
+        # elif args.solver == "Independent":
+        #     print("***Run Independent***")
+        #     solver = IndependentSolver(m["map"], m["start"], m["end"])
+        #     paths = solver.find_solution()
+        # elif args.solver == "Prioritized":
+        #     print("***Run Prioritized***")
+        #     solver = PrioritizedPlanningSolver(m["map"], m["start"], m["end"])
+        #     paths = solver.find_solution()
+        # if args.solver == "CBS":
+        #     print_mapf_instance(my_map, starts, goals)
+        #     print("***Run CBS***")
+        #     print("***Run A Star***")
+        #     cbs_a_star = CBSSolver(my_map, starts, goals)
+        #     paths_a_star = cbs_a_star.find_solution(args.disjoint)
+        #     num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
+        #     total_time_a_star += cbs_a_star.get_time()
+        #     print()
+        #     print("***Run IDA***")
+        #     cbs_ida = CBSSolver(my_map, starts, goals)
+        #     paths_IDA = cbs_ida.find_solution_IDA(args.disjoint)
+        #     num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
+        #     total_time_IDA += cbs_ida.get_time()
         if args.solver == "CBS":
+            print_mapf_instance(m["map"], m["start"], m["end"])
+            for i in range(m["start"].__len__()):
+                print("{}".format(i) + " {}".format(m["start"][i]) + " {}".format(m["end"][i]))
             print("***Run CBS***")
-            cbs = CBSSolver(m["map"], m["start"], m["end"])
-            paths = cbs.find_solution(args.disjoint)
-            num_of_nodes += cbs.get_expanded_nodes()
-            total_time += cbs.get_time()
-        elif args.solver == "JPS":
-            print("***Run Independent***")
-            cbs = CBSSolver(m["map"], m["start"], m["end"])
-            paths = cbs.find_solution_JPS(args.disjoint)
-            num_of_nodes += cbs.get_expanded_nodes()
-            total_time += cbs.get_time()
-        elif args.solver == "IDA":
-            print("***Run Prioritized***")
-            cbs = CBSSolver(m["map"], m["start"], m["end"])
-            paths = cbs.find_solution_IDA(args.disjoint)
-            num_of_nodes += cbs.get_expanded_nodes()
-            total_time += cbs.get_time()
-        elif args.solver == "tt_IDA":
-            print("***Run Prioritized***")
-            cbs = CBSSolver(m["map"], m["start"], m["end"])
-            paths = cbs.find_solution_tt_IDA(args.disjoint)
-            num_of_nodes += cbs.get_expanded_nodes()
-            total_time += cbs.get_time()
-        elif args.solver == "Q_Learning":
-            print("***Run Prioritized***")
-            cbs = CBSSolver(m["map"], m["start"], m["end"])
-            paths = cbs.find_solution_Q_Learning(args.disjoint)
-            num_of_nodes += cbs.get_expanded_nodes()
-            total_time += cbs.get_time()
-        elif args.solver == "Independent":
-            print("***Run Independent***")
-            solver = IndependentSolver(m["map"], m["start"], m["end"])
-            paths = solver.find_solution()
-        elif args.solver == "Prioritized":
-            print("***Run Prioritized***")
-            solver = PrioritizedPlanningSolver(m["map"], m["start"], m["end"])
-            paths = solver.find_solution()
+            print("***Run TT IDA***")
+            cbs_a_star = CBSSolver(m["map"], m["start"], m["end"])
+            paths_a_star = cbs_a_star.find_solution_tt_IDA(args.disjoint)
+            num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
+            total_time_a_star += cbs_a_star.get_time()
+            print()
+            print("***Run IDA***")
+            cbs_ida = CBSSolver(m["map"], m["start"], m["end"])
+            paths_IDA = cbs_ida.find_solution_IDA(args.disjoint)
+            num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
+            total_time_IDA += cbs_ida.get_time()
         else:
             raise RuntimeError("Unknown solver!")
 
-        cost = get_sum_of_cost(paths)
+        # cost = get_sum_of_cost(paths)
         # result_file.write("{},{}\n".format(file, cost))
 
 
         if not args.batch:
             print("***Test paths on a simulation***")
-            animation = Animation(m["map"], m["start"], m["end"], paths)
+            animation = Animation(m["map"], m["start"], m["end"])
             # animation.save("output.mp4", 1.0)
             animation.show()
-    print("Total expanded nodes:", num_of_nodes)
-    print("Total time:", total_time)
+    print("Total expanded nodes TT i:", num_of_nodes_a_star)
+    print("Total time A star:", total_time_a_star)
+    print("Total expanded nodes IDA:", num_of_nodes_IDA)
+    print("Total time: IDA", total_time_IDA)
     result_file.close()

@@ -147,7 +147,7 @@ def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
     constraint_table = build_constraint_table(constraints, agent)
     root = {'loc': start_loc,
             'g_val': 0,
-            'h_val': h_value,
+            'h_val': h_value / 2,
             'parent': None,
             'timestep': 0}
     if len(constraint_table) > 0:
