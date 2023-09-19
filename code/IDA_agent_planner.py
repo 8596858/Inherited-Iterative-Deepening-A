@@ -148,7 +148,7 @@ def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     constraint_table = build_constraint_table(constraints, agent)
     root = {'loc': start_loc,
             'g_val': 0,
-            'h_val': h_value / 2,
+            'h_val': h_value,
             'parent': None,
             'timestep': 0}
     push_node(open_list, root)
@@ -158,7 +158,6 @@ def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             if cons['timestep'] > earliest_goal_timestep \
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
-    num = 0
     bound = {'node': root,
              'bound': h_value,
              'found': False}
@@ -166,10 +165,9 @@ def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         if len(open_list) > 0:
             node = pop_node(open_list)
             bound = {'node': node,
-                     'bound': h_values[node['loc']],
+                     'bound': h_values[node['loc']] / 4 + 1,
                      'found': False}
         bound = DeepSearch(my_map, bound, h_values, constraint_table, earliest_goal_timestep, open_list, closed_list)
-        num += 1
         if bound['found']:
             path = get_path(bound['node'])
             return path
