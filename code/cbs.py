@@ -557,5 +557,6 @@ class CBSSolver(object):
         f3.writelines(self.num_of_expanded.__str__())
         f3.write('\n')
         print("Generated nodes: {}".format(self.num_of_generated))
+        print()
         f1.close()
         f3.close()

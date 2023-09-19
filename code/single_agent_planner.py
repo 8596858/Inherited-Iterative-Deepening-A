@@ -131,6 +131,9 @@ def compare_nodes(n1, n2):
 
 
 def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
+    # print(start_loc[0], ", ", start_loc[1])
+    # print(goal_loc[0], ", ", goal_loc[1])
+    # print(my_map[start_loc[0]][start_loc[1]])
     open_list = []
     closed_list = dict()
 
