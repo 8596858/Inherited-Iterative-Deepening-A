@@ -156,7 +156,7 @@ def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
     bound = {'node': root,
-             'bound': h_value,
+             'bound': h_value / 4,
              'found': False}
     while True:
         bound['node'] = root
