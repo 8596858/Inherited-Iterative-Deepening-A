@@ -98,8 +98,12 @@ if __name__ == '__main__':
     # total_time = 0
     num_of_nodes_a_star = 0
     total_time_a_star = 0
+    num_of_nodes_JPS = 0
+    total_time_JPS = 0
     num_of_nodes_IDA = 0
     total_time_IDA = 0
+    num_of_nodes_n_IDA = 0
+    total_time_n_IDA = 0
     # for file in sorted(glob.glob(args.instance)):
     #
     #     print("***Import an instance***")
@@ -173,12 +177,22 @@ if __name__ == '__main__':
             paths_a_star = cbs_a_star.find_solution(args.disjoint)
             num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
             total_time_a_star += cbs_a_star.get_time()
-            print()
+            print("***Run JPS***")
+            cbs_jps = CBSSolver(m["map"], m["start"], m["end"])
+            paths_jps = cbs_jps.find_solution_JPS(args.disjoint)
+            num_of_nodes_JPS += cbs_jps.get_expanded_nodes()
+            total_time_JPS += cbs_jps.get_time()
             print("***Run IDA***")
             cbs_ida = CBSSolver(m["map"], m["start"], m["end"])
-            paths_IDA = cbs_ida.find_solution_IDA(args.disjoint)
+            paths_ida = cbs_ida.find_solution_tt_IDA(args.disjoint)
             num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
             total_time_IDA += cbs_ida.get_time()
+            print("***Run new IDA***")
+            cbs_n_ida = CBSSolver(m["map"], m["start"], m["end"])
+            paths_n_ida = cbs_n_ida.find_solution_IDA(args.disjoint)
+            num_of_nodes_n_IDA += cbs_n_ida.get_expanded_nodes()
+            total_time_n_IDA += cbs_n_ida.get_time()
+            print()
         else:
             raise RuntimeError("Unknown solver!")
 
@@ -193,6 +207,10 @@ if __name__ == '__main__':
             animation.show()
     print("Total expanded nodes A star:", num_of_nodes_a_star)
     print("Total time A star:", total_time_a_star)
+    print("Total expanded nodes JPS:", num_of_nodes_JPS)
+    print("Total time JPS:", total_time_JPS)
     print("Total expanded nodes IDA:", num_of_nodes_IDA)
-    print("Total time: IDA", total_time_IDA)
+    print("Total time IDA:", total_time_IDA)
+    print("Total expanded nodes new IDA:", num_of_nodes_n_IDA)
+    print("Total time new IDA:", total_time_n_IDA)
     result_file.close()
