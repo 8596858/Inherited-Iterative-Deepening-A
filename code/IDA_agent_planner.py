@@ -158,14 +158,12 @@ def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             if cons['timestep'] > earliest_goal_timestep \
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
-    bound = {'node': root,
-             'bound': h_value,
-             'found': False}
+    bound = {}
     while True:
         if len(open_list) > 0:
             node = pop_node(open_list)
             bound = {'node': node,
-                     'bound': h_values[node['loc']] / 4 + 1,
+                     'bound': h_value / 4 + 1,
                      'found': False}
         bound = DeepSearch(my_map, bound, h_values, constraint_table, earliest_goal_timestep, open_list, closed_list)
         if bound['found']:
