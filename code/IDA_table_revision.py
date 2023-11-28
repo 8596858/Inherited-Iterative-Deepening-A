@@ -147,7 +147,7 @@ def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
     constraint_table = build_constraint_table(constraints, agent)
     root = {'loc': start_loc,
             'g_val': 0,
-            'h_val': h_value / 2,
+            'h_val': h_value,
             'parent': None,
             'timestep': 0}
     if len(constraint_table) > 0:
@@ -156,7 +156,7 @@ def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
     bound = {'node': root,
-             'bound': h_value / 4,
+             'bound': h_value,
              'found': False}
     while True:
         bound['node'] = root
@@ -194,8 +194,8 @@ def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, tra
                  'timestep': bound['node']['timestep'] + 1}
         if is_constrained(bound['node']['loc'], child['loc'], child['timestep'], constraints) == 0:
             succ.append(child)
-            if (child['loc'], child['timestep']) in transposition_table:
-                b.append(1 + transposition_table[(child['loc']), (child['timestep'])])
+            if (child['loc']) in transposition_table:
+                b.append(1 + transposition_table[(child['loc'])])
             else:
                 b.append(1 + h_values[child_loc])
     for i in range(len(succ)):
@@ -223,7 +223,7 @@ def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, tra
         if 'found' in temp and temp['found']:
             return temp
         new_bound = min(new_bound, temp['bound'])
-    transposition_table[(bound['node']['loc']), (bound['node']['timestep'])] = new_bound
+    transposition_table[(bound['node']['loc'])] = new_bound
     return {'node': bound['node'],
             'bound': new_bound,
             'found': False}

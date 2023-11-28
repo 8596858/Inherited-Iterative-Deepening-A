@@ -1,5 +1,6 @@
 import heapq
-
+import sys
+sys.setrecursionlimit(10000)
 
 def move(loc, dir):
     # task 1.1 Add the node that staying at original location
@@ -15,7 +16,6 @@ def get_sum_of_cost(paths):
 
 
 def compute_heuristics(my_map, goal):
-    # Use Dijkstra to build a shortest-path tree rooted at the goal location
     open_list = []
     closed_list = dict()
     root = {'loc': goal, 'cost': 0}
@@ -29,7 +29,7 @@ def compute_heuristics(my_map, goal):
             if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
                     or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
                 continue
-            if my_map[child_loc[0]][child_loc[1]]:
+            if my_map[child_loc[0]][child_loc[1]] == "#":
                 continue
             child = {'loc': child_loc, 'cost': child_cost}
             if child_loc in closed_list:
@@ -47,6 +47,14 @@ def compute_heuristics(my_map, goal):
     for loc, node in closed_list.items():
         h_values[loc] = node['cost']
     return h_values
+
+    # # build the heuristics table
+    # h_values = dict()
+    # for i in range(len(my_map)):
+    #     for j in range(len(my_map[0])):
+    #         if not my_map[i][j]:
+    #             h_values[(i, j)] = abs(i - goal[0]) + abs(j - goal[1])
+    # return h_values
 
 
 def build_constraint_table(constraints, agent):
@@ -132,6 +140,7 @@ def compare_nodes(n1, n2):
 def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     open_list = []
     closed_list = dict()
+    set_list = dict()
     earliest_goal_timestep = 0
 
     # make sure h_values has start_loc
@@ -150,83 +159,61 @@ def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             'h_val': h_value,
             'parent': None,
             'timestep': 0}
-    push_node(open_list, root)
-    closed_list[(root['loc'], root['timestep'])] = root
+    open_list.append(start_loc)
+    closed_list[(root['loc'], root['g_val'])] = start_loc
     if len(constraint_table) > 0:
         for cons in constraint_table:
             if cons['timestep'] > earliest_goal_timestep \
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
-    bound = {}
-    index = 4
+    return_set = {'bound': h_value,
+                  'found': False}
+    expended_nodes = 0
     while True:
-        if len(open_list) > 0:
-            node = pop_node(open_list)
-            # if node['loc'] == start_loc:
-            #     bound = {'node': node,
-            #              'bound': h_value / 4 + 1,
-            #              'found': False}
-            # else:
-            #     bound = {'node': node,
-            #              'bound': h_values[node['loc']],
-            #              'found': False}
-            bound = {'node': node,
-                     'bound': h_value / 2 + 1,
-                     'found': False}
-            index -= 1
-        bound = DeepSearch(my_map, bound, h_values, constraint_table, earliest_goal_timestep, open_list, closed_list)
-        if bound['found']:
-            path = get_path(bound['node'])
-            return path
+        print(open_list, " ", return_set['bound'])
+        # print(returnSet['bound'])
+        return_set = DeepSearch(my_map, return_set, 0, 0, h_values,
+                                constraint_table, earliest_goal_timestep, open_list, closed_list)
+        if return_set['found'] is True:
+            return open_list, expended_nodes
+        if return_set['bound'] == float("inf"):
+            return None
 
 
-def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, open_list, closed_list):
-    if h_values[bound['node']['loc']] == 0 and bound['node']['timestep'] >= earliest_goal_timestep:
-        return {'node': bound['node'],
-                'bound': 0,
+def DeepSearch(my_map, returnSet, g, t, h_values, constraints, earliest_goal_timestep, open_list, closed_list):
+    curr = open_list[len(open_list) - 1]
+    f = g + h_values[curr]
+    if f > returnSet['bound']:
+        return {'bound': f,
+                'found': False}
+    if h_values[curr] == 0:
+        return {'bound': 0,
                 'found': True}
     new_bound = float("inf")
     for dir in range(5):
         if dir < 4:
-            child_loc = move(bound['node']['loc'], dir)
+            child_loc = move(curr, dir)
         else:
-            child_loc = bound['node']['loc']
+            child_loc = curr
         if child_loc[0] <= -1 or child_loc[1] <= -1:
             continue
         if child_loc[0] >= len(my_map) or child_loc[1] >= len(my_map[0]):
             continue
         if my_map[child_loc[0]][child_loc[1]]:
             continue
-        child = {'loc': child_loc,
-                 'g_val': bound['node']['g_val'] + 1,
-                 'h_val': h_values[child_loc],
-                 'parent': bound['node'],
-                 'timestep': bound['node']['timestep'] + 1}
-        if is_constrained(bound['node']['loc'], child['loc'], child['timestep'], constraints) == 0:
-            b = -1
-            t_bound = dict()
-            if 1 + child['h_val'] <= bound['bound']:
-                temp = {'node': child,
-                        'bound': bound['bound'] - 1,
-                        'found': False}
-                t_bound = DeepSearch(my_map, temp, h_values, constraints, earliest_goal_timestep, open_list,
-                                     closed_list)
-                b = 1 + t_bound['bound']
-            else:
-                b = 1 + child['h_val']
-                if (child['loc'], (child['timestep'])) in closed_list:
-                    existing_node = closed_list[(child['loc']), (child['timestep'])]
-                    if compare_nodes(child, existing_node):
-                        closed_list[(child['loc']), (child['timestep'])] = child
-                        push_node(open_list, child)
-                else:
-                    closed_list[(child['loc']), (child['timestep'])] = child
-                    push_node(open_list, child)
-            if 'found' in t_bound and t_bound['found']:
-                return {'node': t_bound['node'],
-                        'bound': b,
-                        'found': t_bound['found']}
-            new_bound = min(new_bound, b)
-    return {'node': bound['node'],
-            'bound': new_bound,
+        if is_constrained(curr, child_loc, t + 1, constraints) == 0:
+            if (child_loc, t + 1) not in closed_list:
+                closed_list[(child_loc, t + 1)] = child_loc
+                open_list.append(child_loc)
+                # if (child['loc'], child['timestep']) not in closed_list:
+                #     closed_list[(child['loc'], child['timestep'])] = child
+                #     push_node(open_list, child)
+                t_bound = DeepSearch(my_map, returnSet, g + 1, t + 1, h_values, constraints, earliest_goal_timestep,
+                                         open_list, closed_list)
+                if 'found' in t_bound and t_bound['found'] is True:
+                    return t_bound
+                new_bound = min(new_bound, t_bound['bound'])
+                closed_list.pop((child_loc, t + 1))
+                open_list.pop()
+    return {'bound': new_bound,
             'found': False}

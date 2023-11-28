@@ -170,7 +170,7 @@ if __name__ == '__main__':
             print("***Run CBS***")
             print("***Run A Star***")
             cbs_a_star = CBSSolver(m["map"], m["start"], m["end"])
-            paths_a_star = cbs_a_star.find_solution(args.disjoint)
+            paths_a_star = cbs_a_star.find_solution_tt_IDA(args.disjoint)
             num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
             total_time_a_star += cbs_a_star.get_time()
             print()
