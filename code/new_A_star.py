@@ -149,7 +149,7 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     h_value = h_values[start_loc]
     constraint_table = build_constraint_table(constraints, agent)
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'root': None, 'parent': None, 'timestep': 0}
-    set_list = dict()
+    set_list = []
     earliest_goal_timestep = 0
     expended_nodes = 0
     if len(constraint_table) > 0:
@@ -161,48 +161,38 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     return_set = {'bound': h_value,
                   'node': root,
                   'found': False}
-    set_list[h_value] = [return_set]
-    lowest_bound = h_value
+    set_list.append(return_set)
     check_list = dict()
     check_list[root['loc']] = return_set
-    closed_list = dict()
-    closed_list[(root['loc']), (root['timestep'])] = root
     while True:
-        root_list = dict()
-        # sort_sets(set_list)
-        if len(set_list[lowest_bound]) == 0:
-            set_list.pop(lowest_bound)
-            temp = float("inf")
-            for i in set_list:
-                if i < temp:
-                    temp = i
-            lowest_bound = temp
-        if lowest_bound == float("inf"):
-            return None
-        return_set = set_list[lowest_bound].pop()
-        # print(len(set_list))
-        # print(return_set['node']['loc'], " ", return_set['bound'])
-        path, expended_nodes, return_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list,
-                                                             return_set, h_values, constraint_table, return_set['node'],
-                                                             root_list, expended_nodes, earliest_goal_timestep)
-        if path is not None:
-            return path
-
         # root_list = dict()
+        # sort_sets(set_list)
+        # return_set = set_list.pop()
         # closed_list = dict()
-        # closed_list[root['loc']] = root
-        # path, expended_nodes, return_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list,
-        #                                                      return_set, h_values, constraint_table, root,
-        #                                                      root_list, expended_nodes, earliest_goal_timestep)
+        # closed_list[return_set['node']['loc']] = return_set['node']
+        # print(return_set['node']['loc'], " ", return_set['bound'])
+        # path, expended_nodes, return_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, return_set, h_values, constraint_table, return_set['node'],
+        #                                          root_list, expended_nodes, earliest_goal_timestep)
         # if path is not None:
         #     print(path)
-        #     return path
+        #     return path, expended_nodes
         # elif return_set['bound'] == float("inf"):
         #     return None
 
+        root_list = dict()
+        closed_list = dict()
+        closed_list[(root['loc'], root['timestep'])] = root
+        path, expended_nodes, return_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list,
+                                                             return_set, h_values, constraint_table, root,
+                                                             root_list, expended_nodes, earliest_goal_timestep)
+        if path is not None:
+            print(path)
+            return path
+        elif return_set['bound'] == float("inf"):
+            return None
 
-def deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, return_set, h_values, constraint_table, node,
-                      root_list, expended_nodes,
+
+def deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, return_set, h_values, constraint_table, node, root_list, expended_nodes,
                       earliest_goal_timestep):
     open_list = []
     up_bound = round(max(min(node['loc'][0], goal_loc[0]) - 2, -1))
@@ -216,6 +206,15 @@ def deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, retur
         curr = pop_node(open_list)
         expended_nodes = expended_nodes + 1
 
+        if curr['g_val'] + curr['h_val'] > return_set['bound']:
+            # if curr['root']['loc'] in check_list:
+            #     if check_list[curr['root']['loc']]['bound'] > curr['g_val'] + curr['h_val']:
+            #         check_list[curr['root']['loc']] = {'bound': curr['g_val'] + curr['h_val'], 'node': curr['root'], 'found': False}
+            #         set_list.append({'bound': curr['g_val'] + curr['h_val'], 'node': curr['root'], 'found': False})
+            # else:
+            #     set_list.append({'bound': curr['g_val'] + curr['h_val'], 'node': curr['root'], 'found': False})
+            return None, expended_nodes, {'bound': curr['g_val'] + curr['h_val'], 'node': curr['root'], 'found': False}
+
         if curr['loc'] == goal_loc:
             return_flag = 0
             for constraint in constraint_table:
@@ -225,20 +224,18 @@ def deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, retur
             if return_flag == 0:
                 return get_path(curr), expended_nodes, {'bound': 0, 'node': curr['root'], 'found': True}
 
-        if curr['loc'] not in root_list:
-            root_list[curr['loc']] = curr
-            path, temp, temp_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, return_set,
-                                                     h_values, constraint_table, curr, root_list,
-                                                     expended_nodes, earliest_goal_timestep)
+        if (curr['loc'], (curr['timestep'])) not in root_list:
+            root_list[(curr['loc']), (curr['timestep'])] = curr
+            path, temp, temp_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, return_set, h_values, constraint_table, curr, root_list,
+                                           expended_nodes, earliest_goal_timestep)
             if path is not None:
                 return path, temp, {'bound': 0, 'node': curr['root'], 'found': True}
             new_bound = min(new_bound, temp_set['bound'])
         else:
-            existing_node = root_list[curr['loc']]
+            existing_node = root_list[(curr['loc']), (curr['timestep'])]
             if compare_nodes(curr, existing_node):
-                root_list[curr['loc']] = curr
-                path, temp, temp_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list,
-                                                         return_set,
+                root_list[(curr['loc']), (curr['timestep'])] = curr
+                path, temp, temp_set = deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, return_set,
                                                          h_values, constraint_table, curr, root_list,
                                                          expended_nodes, earliest_goal_timestep)
                 if path is not None:
@@ -267,41 +264,13 @@ def deep_limit_search(my_map, goal_loc, closed_list, set_list, check_list, retur
                          'parent': curr,
                          'timestep': curr['timestep'] + 1}
 
-                if child['g_val'] + child['h_val'] <= return_set['bound']:
-                    if (child['loc'], (child['timestep'])) in closed_list:
-                        existing_node = closed_list[(child['loc']), (child['timestep'])]
-                        if compare_nodes(child, existing_node):
-                            closed_list[(child['loc']), (child['timestep'])] = child
-                            push_node(open_list, child)
-                    else:
+                if (child['loc'], (child['timestep'])) in closed_list:
+                    existing_node = closed_list[(child['loc']), (child['timestep'])]
+                    if compare_nodes(child, existing_node):
                         closed_list[(child['loc']), (child['timestep'])] = child
                         push_node(open_list, child)
                 else:
-                    if (child['loc'], (child['timestep'])) in closed_list:
-                        existing_node = closed_list[(child['loc']), (child['timestep'])]
-                        if compare_nodes(child, existing_node):
-                            if child['g_val'] + child['h_val'] in set_list:
-                                set_list[child['g_val'] + child['h_val']].append(
-                                    {'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False})
-                            else:
-                                set_list[child['g_val'] + child['h_val']] = [
-                                    {'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False}]
-                    else:
-                        closed_list[(child['loc']), (child['timestep'])] = child
-                        if child['g_val'] + child['h_val'] in set_list:
-                            set_list[child['g_val'] + child['h_val']].append(
-                                {'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False})
-                        else:
-                            set_list[child['g_val'] + child['h_val']] = [
-                                {'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False}]
-                    # if new_bound == float("inf"):
-                    #     new_bound = child['g_val'] + child['h_val']
-                    #     if child['g_val'] + child['h_val'] in set_list:
-                    #         set_list[child['g_val'] + child['h_val']].append({'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False})
-                    #     else:
-                    #         set_list[child['g_val'] + child['h_val']] = {'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False}
-                    # else:
-                    #     if child['g_val'] + child['h_val'] == new_bound:
-                    #         set_list[child['g_val'] + child['h_val']].append({'bound': child['g_val'] + child['h_val'], 'node': child, 'found': False})
+                    closed_list[(child['loc']), (child['timestep'])] = child
+                    push_node(open_list, child)
 
-    return None, 0, {'bound': new_bound, 'node': node['root'], 'found': False}  # Failed to find solutions
+    return None, 0, {'bound': new_bound, 'node': node['root'],  'found': False}  # Failed to find solutions

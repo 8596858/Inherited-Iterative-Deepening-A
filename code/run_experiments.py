@@ -97,9 +97,19 @@ if __name__ == '__main__':
     # num_of_nodes = 0
     # total_time = 0
     num_of_nodes_a_star = 0
+    num_of_g_nodes_a_star = 0
     total_time_a_star = 0
+    sum_of_cost_a_star = 0
+    num_of_nodes_JPS = 0
+    total_time_JPS = 0
+    sum_of_cost_JPS = 0
     num_of_nodes_IDA = 0
     total_time_IDA = 0
+    num_of_nodes_n_IDA = 0
+    num_of_g_nodes_n_IDA = 0
+    total_time_n_IDA = 0
+    sum_of_cost_n_IDA = 0
+    same_cost = 0
     # for file in sorted(glob.glob(args.instance)):
     #
     #     print("***Import an instance***")
@@ -170,15 +180,32 @@ if __name__ == '__main__':
             print("***Run CBS***")
             print("***Run A Star***")
             cbs_a_star = CBSSolver(m["map"], m["start"], m["end"])
-            paths_a_star = cbs_a_star.find_solution_tt_IDA(args.disjoint)
-            num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
+            paths_a_star = cbs_a_star.find_solution(args.disjoint)
+            # num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
+            # num_of_g_nodes_a_star += cbs_a_star.get_generated_nodes()
             total_time_a_star += cbs_a_star.get_time()
+            sum_of_cost_a_star += cbs_a_star.get_cost()
+            # print("***Run JPS***")
+            # cbs_jps = CBSSolver(m["map"], m["start"], m["end"])
+            # paths_jps = cbs_jps.find_solution_JPS(args.disjoint)
+            # # num_of_nodes_JPS += cbs_jps.get_expanded_nodes()
+            # sum_of_cost_JPS += cbs_jps.get_cost()
+            # total_time_JPS += cbs_jps.get_time()
+            # print("***Run IDA***")
+            # cbs_ida = CBSSolver(m["map"], m["start"], m["end"])
+            # paths_ida = cbs_ida.find_solution_tt_IDA(args.disjoint)
+            # num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
+            # total_time_IDA += cbs_ida.get_time()
+            print("***Run new IDA***")
+            cbs_n_ida = CBSSolver(m["map"], m["start"], m["end"])
+            paths_n_ida = cbs_n_ida.find_solution_new_A_star(args.disjoint)
+            # num_of_nodes_n_IDA += cbs_n_ida.get_expanded_nodes()
+            # num_of_g_nodes_n_IDA += cbs_n_ida.get_generated_nodes()
+            total_time_n_IDA += cbs_n_ida.get_time()
+            sum_of_cost_n_IDA += cbs_n_ida.get_cost()
+            if cbs_a_star.get_cost() == cbs_n_ida.get_cost():
+                same_cost += 1
             print()
-            print("***Run IDA***")
-            cbs_ida = CBSSolver(m["map"], m["start"], m["end"])
-            paths_IDA = cbs_ida.find_solution_IDA(args.disjoint)
-            num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
-            total_time_IDA += cbs_ida.get_time()
         else:
             raise RuntimeError("Unknown solver!")
 
@@ -192,7 +219,17 @@ if __name__ == '__main__':
             # animation.save("output.mp4", 1.0)
             animation.show()
     print("Total expanded nodes A star:", num_of_nodes_a_star)
+    print("Total generated nodes A star:", num_of_g_nodes_a_star)
     print("Total time A star:", total_time_a_star)
-    print("Total expanded nodes IDA:", num_of_nodes_IDA)
-    print("Total time: IDA", total_time_IDA)
+    print("Total cost A star:", sum_of_cost_a_star)
+    # print("Total expanded nodes JPS:", num_of_nodes_JPS)
+    # print("Total time JPS:", total_time_JPS)
+    # print("Total cost JPS:", sum_of_cost_JPS)
+    # print("Total expanded nodes IDA:", num_of_nodes_IDA)
+    # print("Total time IDA:", total_time_IDA)
+    print("Total expanded nodes new IDA:", num_of_nodes_n_IDA)
+    print("Total generated nodes new IDA:", num_of_g_nodes_n_IDA)
+    print("Total time new IDA:", total_time_n_IDA)
+    print("Total cost new IDA:", sum_of_cost_n_IDA)
+    print("The same cost:", same_cost)
     result_file.close()
