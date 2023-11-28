@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import argparse
+import tracemalloc
 import glob
 from pathlib import Path
 from cbs import CBSSolver
@@ -99,6 +100,7 @@ if __name__ == '__main__':
     num_of_nodes_a_star = 0
     num_of_g_nodes_a_star = 0
     total_time_a_star = 0
+    total_mem_a_star = 0
     sum_of_cost_a_star = 0
     num_of_nodes_JPS = 0
     total_time_JPS = 0
@@ -108,6 +110,7 @@ if __name__ == '__main__':
     num_of_nodes_n_IDA = 0
     num_of_g_nodes_n_IDA = 0
     total_time_n_IDA = 0
+    total_mem_n_IDA = 0
     sum_of_cost_n_IDA = 0
     same_cost = 0
     # for file in sorted(glob.glob(args.instance)):
@@ -179,8 +182,13 @@ if __name__ == '__main__':
                 print("{}".format(i) + " {}".format(m["start"][i]) + " {}".format(m["end"][i]))
             print("***Run CBS***")
             print("***Run A Star***")
+            tracemalloc.start()
             cbs_a_star = CBSSolver(m["map"], m["start"], m["end"])
             paths_a_star = cbs_a_star.find_solution(args.disjoint)
+            mem_a_star = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_a_star))
+            total_mem_a_star += mem_a_star[0]
+            tracemalloc.stop()
             # num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
             # num_of_g_nodes_a_star += cbs_a_star.get_generated_nodes()
             total_time_a_star += cbs_a_star.get_time()
@@ -197,8 +205,13 @@ if __name__ == '__main__':
             # num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
             # total_time_IDA += cbs_ida.get_time()
             print("***Run new IDA***")
+            tracemalloc.start()
             cbs_n_ida = CBSSolver(m["map"], m["start"], m["end"])
             paths_n_ida = cbs_n_ida.find_solution_new_A_star(args.disjoint)
+            mem_n_IDA = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_n_IDA))
+            total_mem_n_IDA += mem_n_IDA[0]
+            tracemalloc.stop()
             # num_of_nodes_n_IDA += cbs_n_ida.get_expanded_nodes()
             # num_of_g_nodes_n_IDA += cbs_n_ida.get_generated_nodes()
             total_time_n_IDA += cbs_n_ida.get_time()
@@ -221,6 +234,7 @@ if __name__ == '__main__':
     print("Total expanded nodes A star:", num_of_nodes_a_star)
     print("Total generated nodes A star:", num_of_g_nodes_a_star)
     print("Total time A star:", total_time_a_star)
+    print("Total memory A star:", total_mem_a_star)
     print("Total cost A star:", sum_of_cost_a_star)
     # print("Total expanded nodes JPS:", num_of_nodes_JPS)
     # print("Total time JPS:", total_time_JPS)
@@ -230,6 +244,7 @@ if __name__ == '__main__':
     print("Total expanded nodes new IDA:", num_of_nodes_n_IDA)
     print("Total generated nodes new IDA:", num_of_g_nodes_n_IDA)
     print("Total time new IDA:", total_time_n_IDA)
+    print("Total memory new IDA:", total_mem_n_IDA)
     print("Total cost new IDA:", sum_of_cost_n_IDA)
     print("The same cost:", same_cost)
     result_file.close()

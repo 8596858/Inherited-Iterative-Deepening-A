@@ -265,6 +265,8 @@ class CBSSolver(object):
                     Q['collisions'] = detect_collisions(Q['paths'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     self.push_node(Q)
+                else:
+                    print("!!!!!!!!!!!!!!")
 
         self.print_results(root)
         return root['paths']
