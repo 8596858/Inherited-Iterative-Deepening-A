@@ -500,7 +500,9 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = new_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
+            path, temp1, temp2 = new_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
+            self.expanded_nodes += temp1
+            self.generated_nodes += temp2
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -540,7 +542,9 @@ class CBSSolver(object):
                 for p in P['paths']:
                     Q['paths'].append(p)
                 a = constraint['agent']
-                path = new_a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
+                path, temp1, temp2 = new_a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
+                self.expanded_nodes += temp1
+                self.generated_nodes += temp2
                 if path is not None:
                     Q['paths'][a] = path
                     Q['collisions'] = detect_collisions(Q['paths'])

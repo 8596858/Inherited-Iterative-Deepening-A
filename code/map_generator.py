@@ -55,14 +55,27 @@ def map_generator(size, agent_num, obs_rate, num):
                         end.append((ex, ey))
                         flag = False
             flag = True
-            for i in range(start.__len__()):
-                h_values = compute_heuristics(my_map, end[i])
-                if h_values.__contains__(start[i]) is False:
+            for s in range(start.__len__()):
+                h_values = compute_heuristics(my_map, end[s])
+                if h_values.__contains__(start[s]) is False:
                     flag = False
                     break
             if flag is True:
                 map_dic = {"map": my_map, "start": start, "end": end}
                 maps.append(map_dic)
+                f = open("map/" + str(i) + ".txt", "w")
+                f.write(str(size) + " " + str(size) + "\n")
+                for x in range(size):
+                    for y in range(size):
+                        if my_map[x][y] is False:
+                            f.write(". ")
+                        else:
+                            f.write("@ ")
+                    f.write("\n")
+                f.write(str(agent_num) + "\n")
+                for a in range(agent_num):
+                    f.write(str(start[a][0]) + " " + str(start[a][1]) + " " + str(end[a][0]) + " " + str(end[a][1]) + "\n")
+                f.close()
                 break
 
     return maps

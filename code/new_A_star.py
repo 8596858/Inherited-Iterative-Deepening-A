@@ -140,6 +140,8 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     set_list = dict()
     earliest_goal_timestep = 0
+    expended_nodes = 0
+    generated_nodes = [0]
 
     # make sure h_values has start_loc
     flag = False
@@ -148,7 +150,7 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             flag = True
             break
     if not flag:
-        return None  # Failed to find solutions
+        return None, 0, 0  # Failed to find solutions
 
     bound = h_values[start_loc]
     constraint_table = build_constraint_table(constraints, agent)
@@ -160,7 +162,6 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
     set_list[bound] = [root]
-    expended_nodes = 0
     while True:
         # print(return_set['path'])
         if len(set_list[bound]) == 0:
@@ -171,21 +172,22 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     temp = i
             bound = temp
         if bound == float("inf"):
-            return None
+            return None, 0, 0
         root = set_list[bound].pop()
+        expended_nodes += 1
         # print(return_set['path'])
         root = DeepSearch(my_map, bound, h_values, set_list,
-                          constraint_table, earliest_goal_timestep, root, closed_list)
+                          constraint_table, earliest_goal_timestep, root, closed_list, generated_nodes)
         if h_values[root['loc']] == 0:
             return_flag = 0
             for constraint in constraints:
                 if constraint['timestep'] > root['timestep'] and constraint['loc'] == [goal_loc]:
                     return_flag = 1
             if return_flag == 0:
-                return get_path(root)
+                return get_path(root), expended_nodes, generated_nodes[0]
 
 
-def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_timestep, node, closed_list):
+def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_timestep, node, closed_list, generated_nodes):
     g = node['g_val']
     curr = node['loc']
     if h_values[curr] == 0:
@@ -214,7 +216,7 @@ def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_tim
                     closed_list[(child_loc, child['timestep'])] = f
                     new_node = DeepSearch(my_map, bound, h_values, set_list, constraints,
                                           earliest_goal_timestep,
-                                          child, closed_list)
+                                          child, closed_list, generated_nodes)
 
                     if h_values[new_node['loc']] == 0:
                         return new_node
@@ -226,6 +228,7 @@ def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_tim
                     closed_list[(child_loc, child['timestep'])] = f
                     if f in set_list:
                         set_list[f].append(child.copy())
+                        generated_nodes[0] += 1
                     else:
                         set_list[f] = [child.copy()]
     return node
