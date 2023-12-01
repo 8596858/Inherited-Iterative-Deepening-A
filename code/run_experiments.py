@@ -125,6 +125,7 @@ if __name__ == '__main__':
         num = args.map_num
         maps = map_generator(size,agent_num,obs_rate, num)
     if args.test:
+        index = 0
         for file in sorted(glob.glob(args.instance)):
 
             print("***Import an instance***")
@@ -184,10 +185,12 @@ if __name__ == '__main__':
             #     num_of_nodes_IDA += cbs_ida.get_expanded_nodes()
             #     total_time_IDA += cbs_ida.get_time()
             if args.solver == "CBS":
-                print_mapf_instance(my_map, starts, goals)
+                # print_mapf_instance(my_map, starts, goals)
                 for i in range(starts.__len__()):
                     print("{}".format(i) + " {}".format(starts[i]) + " {}".format(goals[i]))
                 print("***Run CBS***")
+                index += 1
+                print(index)
                 print("***Run A Star***")
                 tracemalloc.start()
                 cbs_a_star = CBSSolver(my_map, starts, goals)

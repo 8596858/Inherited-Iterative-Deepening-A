@@ -227,11 +227,11 @@ class CBSSolver(object):
         self.push_node(root)
 
         # Task 3.1: Testing
-        print(root['collisions'])
+        # print(root['collisions'])
 
         # Task 3.2: Testing
-        for collision in root['collisions']:
-            print(standard_splitting(collision))
+        # for collision in root['collisions']:
+        #     print(standard_splitting(collision))
 
         ##############################
         # Task 3.3: High-Level Search
@@ -265,11 +265,11 @@ class CBSSolver(object):
                     Q['collisions'] = detect_collisions(Q['paths'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     self.push_node(Q)
-                else:
-                    print("!!!!!!!!!!!!!!")
+                # else:
+                #     print("!!!!!!!!!!!!!!")
 
-        for p in root['paths']:
-            print(p)
+        # for p in root['paths']:
+        #     print(p)
         self.print_results(root)
         return root['paths']
 
@@ -514,11 +514,11 @@ class CBSSolver(object):
         self.push_node(root)
 
         # Task 3.1: Testing
-        print(root['collisions'])
+        # print(root['collisions'])
 
         # Task 3.2: Testing
-        for collision in root['collisions']:
-            print(standard_splitting(collision))
+        # for collision in root['collisions']:
+        #     print(standard_splitting(collision))
 
         ##############################
         # Task 3.3: High-Level Search
@@ -553,8 +553,8 @@ class CBSSolver(object):
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     self.push_node(Q)
 
-        for p in root['paths']:
-            print(p)
+        # for p in root['paths']:
+        #     print(p)
         self.print_results(root)
         return root['paths']
 
