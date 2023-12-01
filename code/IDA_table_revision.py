@@ -155,32 +155,32 @@ def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
             if cons['timestep'] > earliest_goal_timestep \
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
-    bound = {'node': root,
-             'bound': h_value,
-             'found': False}
+    return_set = {'node': root,
+                  'bound': h_value,
+                  'found': False}
     while True:
-        bound['node'] = root
-        bound = DeepSearch(my_map, bound, h_values, constraint_table, earliest_goal_timestep, transposition_table)
-        if bound['found']:
-            path = get_path(bound['node'])
+        return_set['node'] = root
+        return_set = DeepSearch(my_map, return_set, h_values, constraint_table, earliest_goal_timestep, transposition_table)
+        if return_set['found']:
+            path = get_path(return_set['node'])
             return path
-        if bound['bound'] == float("inf"):
+        if return_set['bound'] == float("inf"):
             return None
 
 
-def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, transposition_table):
+def DeepSearch(my_map, return_set, h_values, constraints, earliest_goal_timestep, transposition_table):
     succ = []
     b = []
-    if h_values[bound['node']['loc']] == 0 and bound['node']['timestep'] >= earliest_goal_timestep:
-        return {'node': bound['node'],
+    if h_values[return_set['node']['loc']] == 0 and return_set['node']['timestep'] >= earliest_goal_timestep:
+        return {'node': return_set['node'],
                 'bound': 0,
                 'found': True}
     new_bound = float("inf")
     for dir in range(5):
         if dir < 4:
-            child_loc = move(bound['node']['loc'], dir)
+            child_loc = move(return_set['node']['loc'], dir)
         else:
-            child_loc = bound['node']['loc']
+            child_loc = return_set['node']['loc']
         if child_loc[0] <= -1 or child_loc[1] <= -1:
             continue
         if child_loc[0] >= len(my_map) or child_loc[1] >= len(my_map[0]):
@@ -188,11 +188,11 @@ def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, tra
         if my_map[child_loc[0]][child_loc[1]]:
             continue
         child = {'loc': child_loc,
-                 'g_val': bound['node']['g_val'] + 1,
+                 'g_val': return_set['node']['g_val'] + 1,
                  'h_val': h_values[child_loc],
-                 'parent': bound['node'],
-                 'timestep': bound['node']['timestep'] + 1}
-        if is_constrained(bound['node']['loc'], child['loc'], child['timestep'], constraints) == 0:
+                 'parent': return_set['node'],
+                 'timestep': return_set['node']['timestep'] + 1}
+        if is_constrained(return_set['node']['loc'], child['loc'], child['timestep'], constraints) == 0:
             succ.append(child)
             if (child['loc']) in transposition_table:
                 b.append(1 + transposition_table[(child['loc'])])
@@ -210,11 +210,11 @@ def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, tra
 
     for i in range(len(succ)):
         temp = {'node': succ[i],
-                'bound': bound['bound'],
+                'bound': return_set['bound'],
                 'found': False}
-        if b[i] <= bound['bound']:
+        if b[i] <= return_set['bound']:
             temp = {'node': succ[i],
-                    'bound': bound['bound'] - 1,
+                    'bound': return_set['bound'] - 1,
                     'found': False}
             temp = DeepSearch(my_map, temp, h_values, constraints, earliest_goal_timestep, transposition_table)
             temp['bound'] = temp['bound'] + 1
@@ -223,7 +223,7 @@ def DeepSearch(my_map, bound, h_values, constraints, earliest_goal_timestep, tra
         if 'found' in temp and temp['found']:
             return temp
         new_bound = min(new_bound, temp['bound'])
-    transposition_table[(bound['node']['loc'])] = new_bound
-    return {'node': bound['node'],
+    transposition_table[(return_set['node']['loc'])] = new_bound
+    return {'node': return_set['node'],
             'bound': new_bound,
             'found': False}

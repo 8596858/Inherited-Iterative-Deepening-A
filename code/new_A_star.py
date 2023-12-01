@@ -151,16 +151,16 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             break
     if not flag:
         return None, 0, 0  # Failed to find solutions
-
-    bound = h_values[start_loc]
     constraint_table = build_constraint_table(constraints, agent)
-    root = {'loc': start_loc, 'g_val': 0, 'h_val': bound, 'parent': None, 'timestep': 0}
-    closed_list[(start_loc, 0)] = bound
+    root = {'loc': start_loc, 'g_val': 0, 'h_val': h_values[start_loc], 'parent': None, 'timestep': 0}
+    closed_list[(start_loc, 0)] = h_values[start_loc]
     if len(constraint_table) > 0:
         for cons in constraint_table:
             if cons['timestep'] > earliest_goal_timestep \
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
+
+    bound = max(h_values[start_loc], earliest_goal_timestep)
     set_list[bound] = [root]
     # result = root
     while True:
@@ -185,6 +185,14 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             return_flag = 0
             for constraint in constraints:
                 if constraint['timestep'] >= root['timestep'] and constraint['loc'] == [goal_loc]:
+                    if (root['loc'], root['timestep']) not in closed_list or closed_list[(root['loc'], root['timestep'])] > root['g_val'] + 2:
+                        closed_list[(root['loc'], root['timestep'])] = root['g_val']
+                        if root['g_val'] + 2 in set_list:
+                            set_list[root['g_val'] + 2].append(root.copy())
+                            generated_nodes[0] += 1
+                        else:
+                            set_list[root['g_val'] + 2] = [root.copy()]
+                            generated_nodes[0] += 1
                     return_flag = 1
             if return_flag == 0:
                 return get_path(root), expended_nodes, generated_nodes[0]
@@ -198,6 +206,7 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_timestep, node, closed_list, generated_nodes):
     g = node['g_val']
     curr = node['loc']
+    open_list = []
     # if h_values[curr] == 0:
     #     return node
     for dir in range(5):
@@ -218,25 +227,28 @@ def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_tim
                      'h_val': h_values[child_loc],
                      'parent': node,
                      'timestep': node['timestep'] + 1}
-            f = child['g_val'] + h_values[child_loc]
-            if f <= bound:
-                if (child_loc, child['timestep']) not in closed_list or closed_list[(child_loc, child['timestep'])] > f:
-                    closed_list[(child_loc, child['timestep'])] = f
-                    new_node = DeepSearch(my_map, bound, h_values, set_list, constraints,
-                                          earliest_goal_timestep,
-                                          child, closed_list, generated_nodes)
+            push_node(open_list, child)
 
-                    if h_values[new_node['loc']] == 0:
-                        return new_node
-            else:
-                if (child_loc, child['timestep']) not in closed_list or closed_list[(child_loc, child['timestep'])] > f:
-                    # if (child_loc, child['timestep']) in closed_list and closed_list[(child_loc, child['timestep'])] > f:
-                    #     set_list[closed_list[(child_loc, child['timestep'])]].remove(child.copy())
-                    closed_list[(child_loc, child['timestep'])] = f
-                    if f in set_list:
-                        set_list[f].append(child.copy())
-                        generated_nodes[0] += 1
-                    else:
-                        set_list[f] = [child.copy()]
-                        generated_nodes[0] += 1
+    while len(open_list) != 0:
+        child = pop_node(open_list)
+        f = child['g_val'] + child['h_val']
+        if f <= bound:
+            if (child['loc'], child['timestep']) not in closed_list or closed_list[(child['loc'], child['timestep'])] > f:
+                closed_list[(child['loc'], child['timestep'])] = f
+                new_node = DeepSearch(my_map, bound, h_values, set_list, constraints,
+                                        earliest_goal_timestep,
+                                        child, closed_list, generated_nodes)
+                if new_node['h_val'] == 0:
+                    return new_node
+        else:
+            if (child['loc'], child['timestep']) not in closed_list or closed_list[(child['loc'], child['timestep'])] > f:
+                # if (child['loc'], child['timestep']) in closed_list and closed_list[(child['loc'], child['timestep'])] > f:
+                #     set_list[closed_list[(child['loc'], child['timestep'])]].remove(child.copy())
+                closed_list[(child['loc'], child['timestep'])] = f
+                if f in set_list:
+                    set_list[f].append(child.copy())
+                    generated_nodes[0] += 1
+                else:
+                    set_list[f] = [child.copy()]
+                    generated_nodes[0] += 1
     return node
