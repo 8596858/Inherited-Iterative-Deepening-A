@@ -23,22 +23,22 @@ def map_generator(size, agent_num, obs_rate, num):
             #             my_map[-1].append(False)
             #         else:
             #             my_map[-1].append(True)
-            for r in range(size):
-                my_map.append([])
-                for c in range(size):
-                    my_map[-1].append(False)
-            for o in range(obs_num):
-                ox = random.randint(0, size - 1)
-                oy = random.randint(0, size - 1)
-                my_map[ox][oy] = True
             # for r in range(size):
             #     my_map.append([])
             #     for c in range(size):
             #         my_map[-1].append(False)
-            # temp = int((size - 1) / 2)
-            # for x in range(temp):
-            #     for y in range(temp):
-            #         my_map[x * 2 + 1][y * 2 + 1] = True
+            # for o in range(obs_num):
+            #     ox = random.randint(0, size - 1)
+            #     oy = random.randint(0, size - 1)
+            #     my_map[ox][oy] = True
+            for r in range(size):
+                my_map.append([])
+                for c in range(size):
+                    my_map[-1].append(False)
+            temp = int((size - 1) / 2)
+            for x in range(temp):
+                for y in range(temp):
+                    my_map[x * 2 + 1][y * 2 + 1] = True
             for a in range(agent_num):
                 flag = True
                 while flag:
@@ -55,14 +55,27 @@ def map_generator(size, agent_num, obs_rate, num):
                         end.append((ex, ey))
                         flag = False
             flag = True
-            for i in range(start.__len__()):
-                h_values = compute_heuristics(my_map, end[i])
-                if h_values.__contains__(start[i]) is False:
+            for s in range(start.__len__()):
+                h_values = compute_heuristics(my_map, end[s])
+                if h_values.__contains__(start[s]) is False:
                     flag = False
                     break
             if flag is True:
                 map_dic = {"map": my_map, "start": start, "end": end}
                 maps.append(map_dic)
+                f = open("map/" + str(i) + ".txt", "w")
+                f.write(str(size) + " " + str(size) + "\n")
+                for x in range(size):
+                    for y in range(size):
+                        if my_map[x][y] is False:
+                            f.write(". ")
+                        else:
+                            f.write("@ ")
+                    f.write("\n")
+                f.write(str(agent_num) + "\n")
+                for a in range(agent_num):
+                    f.write(str(start[a][0]) + " " + str(start[a][1]) + " " + str(end[a][0]) + " " + str(end[a][1]) + "\n")
+                f.close()
                 break
 
     return maps
