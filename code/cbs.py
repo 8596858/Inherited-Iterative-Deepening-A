@@ -268,6 +268,8 @@ class CBSSolver(object):
                 else:
                     print("!!!!!!!!!!!!!!")
 
+        for p in root['paths']:
+            print(p)
         self.print_results(root)
         return root['paths']
 
@@ -551,6 +553,8 @@ class CBSSolver(object):
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     self.push_node(Q)
 
+        for p in root['paths']:
+            print(p)
         self.print_results(root)
         return root['paths']
 

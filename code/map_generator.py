@@ -23,22 +23,22 @@ def map_generator(size, agent_num, obs_rate, num):
             #             my_map[-1].append(False)
             #         else:
             #             my_map[-1].append(True)
-            for r in range(size):
-                my_map.append([])
-                for c in range(size):
-                    my_map[-1].append(False)
-            for o in range(obs_num):
-                ox = random.randint(0, size - 1)
-                oy = random.randint(0, size - 1)
-                my_map[ox][oy] = True
             # for r in range(size):
             #     my_map.append([])
             #     for c in range(size):
             #         my_map[-1].append(False)
-            # temp = int((size - 1) / 2)
-            # for x in range(temp):
-            #     for y in range(temp):
-            #         my_map[x * 2 + 1][y * 2 + 1] = True
+            # for o in range(obs_num):
+            #     ox = random.randint(0, size - 1)
+            #     oy = random.randint(0, size - 1)
+            #     my_map[ox][oy] = True
+            for r in range(size):
+                my_map.append([])
+                for c in range(size):
+                    my_map[-1].append(False)
+            temp = int((size - 1) / 2)
+            for x in range(temp):
+                for y in range(temp):
+                    my_map[x * 2 + 1][y * 2 + 1] = True
             for a in range(agent_num):
                 flag = True
                 while flag:

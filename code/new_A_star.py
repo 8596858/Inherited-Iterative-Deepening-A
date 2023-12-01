@@ -162,9 +162,12 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     and cons['loc'] == [goal_loc]:
                 earliest_goal_timestep = cons['timestep']
     set_list[bound] = [root]
+    # result = root
     while True:
         # print(return_set['path'])
         if len(set_list[bound]) == 0:
+            # if result['loc'] == goal_loc:
+            #     return get_path(result), expended_nodes, generated_nodes[0]
             set_list.pop(bound)
             temp = float("inf")
             for i in set_list:
@@ -178,20 +181,25 @@ def new_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         # print(return_set['path'])
         root = DeepSearch(my_map, bound, h_values, set_list,
                           constraint_table, earliest_goal_timestep, root, closed_list, generated_nodes)
-        if h_values[root['loc']] == 0:
+        if root['loc'] == goal_loc:
             return_flag = 0
             for constraint in constraints:
-                if constraint['timestep'] > root['timestep'] and constraint['loc'] == [goal_loc]:
+                if constraint['timestep'] >= root['timestep'] and constraint['loc'] == [goal_loc]:
                     return_flag = 1
             if return_flag == 0:
                 return get_path(root), expended_nodes, generated_nodes[0]
+                # if result['loc'] != goal_loc:
+                #     result = root
+                # else:
+                #     if len(get_path(result)) > len(get_path(root)):
+                #         result = root
 
 
 def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_timestep, node, closed_list, generated_nodes):
     g = node['g_val']
     curr = node['loc']
-    if h_values[curr] == 0:
-        return node
+    # if h_values[curr] == 0:
+    #     return node
     for dir in range(5):
         if dir < 4:
             child_loc = move(curr, dir)
@@ -222,13 +230,13 @@ def DeepSearch(my_map, bound, h_values, set_list, constraints, earliest_goal_tim
                         return new_node
             else:
                 if (child_loc, child['timestep']) not in closed_list or closed_list[(child_loc, child['timestep'])] > f:
-                    if (child_loc, child['timestep']) in closed_list and closed_list[
-                        (child_loc, child['timestep'])] > f:
-                        set_list[closed_list[(child_loc, child['timestep'])]].remove(child.copy())
+                    # if (child_loc, child['timestep']) in closed_list and closed_list[(child_loc, child['timestep'])] > f:
+                    #     set_list[closed_list[(child_loc, child['timestep'])]].remove(child.copy())
                     closed_list[(child_loc, child['timestep'])] = f
                     if f in set_list:
                         set_list[f].append(child.copy())
                         generated_nodes[0] += 1
                     else:
                         set_list[f] = [child.copy()]
+                        generated_nodes[0] += 1
     return node

@@ -98,6 +98,7 @@ if __name__ == '__main__':
 
 
     result_file = open("results.csv", "w", buffering=1)
+    result_file.write("Map file name, A* time (s), New IDA time (s), A* expended nodes, New IDA expended nodes, A* generated nodes, New IDA generated nodes, A* memory used, New IDA memory used, A* cost, New IDA cost\n")
 
     # num_of_nodes = 0
     # total_time = 0
@@ -229,12 +230,18 @@ if __name__ == '__main__':
                 raise RuntimeError("Unknown solver!")
 
             # cost = get_sum_of_cost(paths)
-            # result_file.write("{},{}\n".format(file, cost))
+            result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file, cbs_a_star.get_time(), cbs_n_ida.get_time(),
+                                                                    cbs_a_star.get_expanded_nodes(),
+                                                                    cbs_n_ida.get_expanded_nodes(),
+                                                                    cbs_a_star.get_generated_nodes(),
+                                                                    cbs_n_ida.get_generated_nodes(), mem_a_star[0],
+                                                                    mem_n_IDA[0], cbs_a_star.get_cost(),
+                                                                    cbs_n_ida.get_cost()))
 
 
             if not args.batch:
                 print("***Test paths on a simulation***")
-                animation = Animation(my_map, starts, goals)
+                animation = Animation(my_map, starts, goals, paths_n_ida)
                 # animation.save("output.mp4", 1.0)
                 animation.show()
     print("Total expanded nodes A star:", num_of_nodes_a_star)
@@ -253,4 +260,10 @@ if __name__ == '__main__':
     print("Total memory new IDA:", total_mem_n_IDA)
     print("Total cost new IDA:", sum_of_cost_n_IDA)
     print("The same cost:", same_cost)
+    result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format("Sum", total_time_a_star, total_time_n_IDA,
+                                                            num_of_nodes_a_star,
+                                                            num_of_nodes_n_IDA,
+                                                            num_of_g_nodes_a_star,
+                                                            num_of_g_nodes_n_IDA, total_mem_a_star,
+                                                            sum_of_cost_n_IDA, sum_of_cost_a_star, sum_of_cost_n_IDA))
     result_file.close()
