@@ -6,7 +6,10 @@ from JPS_agent_planner import a_star_JPS
 from IDA_agent_planner import ID_a_star
 from IDA_table_revision import tt_IDA
 from new_A_star import new_a_star
+from learning_real_time_a_star import LRTA_star
 from Q_Learning import Q_learning
+from single_agent_planner_MAPF import a_star_MAPF
+from new_A_star_MAPF import new_a_star_MAPF
 
 
 def detect_collision(path1, path2):
@@ -166,6 +169,8 @@ class CBSSolver(object):
         goals       - [(x1, y1), (x2, y2), ...] list of goal locations
         """
 
+        self.start_time = None
+        self.end_time = None
         self.my_map = my_map
         self.starts = starts
         self.goals = goals
@@ -173,6 +178,7 @@ class CBSSolver(object):
 
         self.num_of_generated = 0
         self.num_of_expanded = 0
+        self.traversed_nodes = 0
         self.generated_nodes = 0
         self.expanded_nodes = 0
         self.sum_of_cost = 0
@@ -214,7 +220,39 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path, temp1, temp2 = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+            path, temp1, temp2, temp3 = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                          i, root['constraints'])
+            self.expanded_nodes += temp1
+            self.generated_nodes += temp2
+            self.traversed_nodes += temp3
+            if path is None:
+                raise BaseException('No solutions')
+            root['paths'].append(path)
+
+        root['cost'] = get_sum_of_cost(root['paths'])
+        self.end_time = timer.time()
+        self.print_results(root)
+        return root['paths']
+
+    def find_solution_MAPF(self, disjoint=True):
+        """ Finds paths for all agents from their start locations to their goal locations
+
+        disjoint    - use disjoint splitting or not
+        """
+
+        self.start_time = timer.time()
+
+        # Generate the root node
+        # constraints   - list of constraints
+        # paths         - list of paths, one for each agent
+        #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
+        # collisions     - list of collisions in paths
+        root = {'cost': 0,
+                'constraints': [],
+                'paths': [],
+                'collisions': []}
+        for i in range(self.num_of_agents):  # Find initial path for each agent
+            path, temp1, temp2 = a_star_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, root['constraints'])
             self.expanded_nodes += temp1
             self.generated_nodes += temp2
@@ -225,22 +263,22 @@ class CBSSolver(object):
         root['cost'] = get_sum_of_cost(root['paths'])
         root['collisions'] = detect_collisions(root['paths'])
         self.push_node(root)
-
-        # Task 3.1: Testing
-        # print(root['collisions'])
-
-        # Task 3.2: Testing
-        # for collision in root['collisions']:
-        #     print(standard_splitting(collision))
-
-        ##############################
-        # Task 3.3: High-Level Search
-        #           Repeat the following as long as the open list is not empty:
-        #             1. Get the next node from the open list (you can use self.pop_node()
-        #             2. If this node has no collision, return solution
-        #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
-        #                standard_splitting function). Add a new child node to your open list for each constraint
-        #           Ensure to create a copy of any objects that your child nodes might inherit
+        #
+        # # Task 3.1: Testing
+        # # print(root['collisions'])
+        #
+        # # Task 3.2: Testing
+        # # for collision in root['collisions']:
+        # #     print(standard_splitting(collision))
+        #
+        # ##############################
+        # # Task 3.3: High-Level Search
+        # #           Repeat the following as long as the open list is not empty:
+        # #             1. Get the next node from the open list (you can use self.pop_node()
+        # #             2. If this node has no collision, return solution
+        # #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
+        # #                standard_splitting function). Add a new child node to your open list for each constraint
+        # #           Ensure to create a copy of any objects that your child nodes might inherit
         while self.open_list:
             P = self.pop_node()
             if len(P['collisions']) == 0:
@@ -257,7 +295,7 @@ class CBSSolver(object):
                 for p in P['paths']:
                     Q['paths'].append(p)
                 a = constraint['agent']
-                path, temp1, temp2 = a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
+                path, temp1, temp2 = a_star_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
                 self.expanded_nodes += temp1
                 self.generated_nodes += temp2
                 if path is not None:
@@ -270,219 +308,100 @@ class CBSSolver(object):
 
         # for p in root['paths']:
         #     print(p)
+        self.end_time = timer.time()
         self.print_results(root)
         return root['paths']
 
-    # def find_solution_JPS(self, disjoint=True):
-    #     """ Finds paths for all agents from their start locations to their goal locations
+    def find_solution_LRTA_star(self, disjoint=True):
+        """ Finds paths for all agents from their start locations to their goal locations
+
+        disjoint    - use disjoint splitting or not
+        """
+
+        self.start_time = timer.time()
+
+        # Generate the root node
+        # constraints   - list of constraints
+        # paths         - list of paths, one for each agent
+        #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
+        # collisions     - list of collisions in paths
+        root = {'cost': 0,
+                'constraints': [],
+                'paths': [],
+                'collisions': []}
+        for i in range(self.num_of_agents):  # Find initial path for each agent
+            path, temp1 = LRTA_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                          i, root['constraints'])
+            self.traversed_nodes += temp1
+            if path is None:
+                raise BaseException('No solutions')
+            root['paths'].append(path)
+
+        root['cost'] = get_sum_of_cost(root['paths'])
+        self.end_time = timer.time()
+        self.print_results(root)
+        return root['paths']
+
+
+    def find_solution_IDA(self, disjoint=True):
+        """ Finds paths for all agents from their start locations to their goal locations
+
+        disjoint    - use disjoint splitting or not
+        """
+
+        self.start_time = timer.time()
+
+        # Generate the root node
+        # constraints   - list of constraints
+        # paths         - list of paths, one for each agent
+        #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
+        # collisions     - list of collisions in paths
+        root = {'cost': 0,
+                'constraints': [],
+                'paths': [],
+                'collisions': []}
+        for i in range(self.num_of_agents):  # Find initial path for each agent
+            path = ID_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                          i, root['constraints'])
+            if path is None:
+                raise BaseException('No solutions')
+            root['paths'].append(path)
+
+        root['cost'] = get_sum_of_cost(root['paths'])
+        self.end_time = timer.time()
+        self.print_results(root)
+        return root['paths']
+
     #
-    #     disjoint    - use disjoint splitting or not
-    #     """
-    #
-    #     self.start_time = timer.time()
-    #
-    #     # Generate the root node
-    #     # constraints   - list of constraints
-    #     # paths         - list of paths, one for each agent
-    #     #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
-    #     # collisions     - list of collisions in paths
-    #     root = {'cost': 0,
-    #             'constraints': [],
-    #             'paths': [],
-    #             'collisions': []}
-    #     for i in range(self.num_of_agents):  # Find initial path for each agent
-    #         path = a_star_JPS(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-    #                       i, root['constraints'])
-    #         if path is None:
-    #             raise BaseException('No solutions')
-    #         root['paths'].append(path)
-    #
-    #     root['cost'] = get_sum_of_cost(root['paths'])
-    #     root['collisions'] = detect_collisions(root['paths'])
-    #     self.push_node(root)
-    #
-    #     # Task 3.1: Testing
-    #     print(root['collisions'])
-    #
-    #     # Task 3.2: Testing
-    #     for collision in root['collisions']:
-    #         print(standard_splitting(collision))
-    #
-    #     ##############################
-    #     # Task 3.3: High-Level Search
-    #     #           Repeat the following as long as the open list is not empty:
-    #     #             1. Get the next node from the open list (you can use self.pop_node()
-    #     #             2. If this node has no collision, return solution
-    #     #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
-    #     #                standard_splitting function). Add a new child node to your open list for each constraint
-    #     #           Ensure to create a copy of any objects that your child nodes might inherit
-    #     while self.open_list:
-    #         P = self.pop_node()
-    #         if len(P['collisions']) == 0:
-    #             root = P
-    #             break
-    #         collision = P['collisions'].pop()
-    #         # task 3.3
-    #         constraints = standard_splitting(collision)
-    #         for constraint in constraints:
-    #             Q = {'cost': 0, 'constraints': [constraint], 'paths': [], 'collisions': None}
-    #             for c in P['constraints']:
-    #                 con = c
-    #                 Q['constraints'].append(con)
-    #             for p in P['paths']:
-    #                 Q['paths'].append(p)
-    #             a = constraint['agent']
-    #             path = a_star_JPS(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-    #             if path is not None:
-    #                 Q['paths'][a] = path
-    #                 Q['collisions'] = detect_collisions(Q['paths'])
-    #                 Q['cost'] = get_sum_of_cost(Q['paths'])
-    #                 self.push_node(Q)
-    #
-    #     self.print_results(root)
-    #     return root['paths']
-    #
-    # def find_solution_IDA(self, disjoint=True):
-    #     """ Finds paths for all agents from their start locations to their goal locations
-    #
-    #     disjoint    - use disjoint splitting or not
-    #     """
-    #
-    #     self.start_time = timer.time()
-    #
-    #     # Generate the root node
-    #     # constraints   - list of constraints
-    #     # paths         - list of paths, one for each agent
-    #     #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
-    #     # collisions     - list of collisions in paths
-    #     root = {'cost': 0,
-    #             'constraints': [],
-    #             'paths': [],
-    #             'collisions': []}
-    #     for i in range(self.num_of_agents):  # Find initial path for each agent
-    #         path, temp1, temp2 = ID_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-    #                       i, root['constraints'])
-    #         self.expanded_nodes += temp1
-    #         self.generated_nodes += temp2[0]
-    #         if path is None:
-    #             raise BaseException('No solutions')
-    #         root['paths'].append(path)
-    #
-    #     root['cost'] = get_sum_of_cost(root['paths'])
-    #     root['collisions'] = detect_collisions(root['paths'])
-    #     self.push_node(root)
-    #
-    #     # Task 3.1: Testing
-    #     print(root['collisions'])
-    #
-    #     # Task 3.2: Testing
-    #     for collision in root['collisions']:
-    #         print(standard_splitting(collision))
-    #
-    #     ##############################
-    #     # Task 3.3: High-Level Search
-    #     #           Repeat the following as long as the open list is not empty:
-    #     #             1. Get the next node from the open list (you can use self.pop_node()
-    #     #             2. If this node has no collision, return solution
-    #     #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
-    #     #                standard_splitting function). Add a new child node to your open list for each constraint
-    #     #           Ensure to create a copy of any objects that your child nodes might inherit
-    #     while self.open_list:
-    #         P = self.pop_node()
-    #         if len(P['collisions']) == 0:
-    #             root = P
-    #             break
-    #         collision = P['collisions'].pop()
-    #         # task 3.3
-    #         constraints = standard_splitting(collision)
-    #         for constraint in constraints:
-    #             Q = {'cost': 0, 'constraints': [constraint], 'paths': [], 'collisions': None}
-    #             for c in P['constraints']:
-    #                 con = c
-    #                 Q['constraints'].append(con)
-    #             for p in P['paths']:
-    #                 Q['paths'].append(p)
-    #             a = constraint['agent']
-    #             path, temp1, temp2 = ID_a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-    #             self.expanded_nodes += temp1
-    #             self.generated_nodes += temp2[0]
-    #             if path is not None:
-    #                 Q['paths'][a] = path
-    #                 Q['collisions'] = detect_collisions(Q['paths'])
-    #                 Q['cost'] = get_sum_of_cost(Q['paths'])
-    #                 self.push_node(Q)
-    #
-    #     self.print_results(root)
-    #     return root['paths']
-    #
-    # def find_solution_tt_IDA(self, disjoint=True):
-    #     """ Finds paths for all agents from their start locations to their goal locations
-    #
-    #     disjoint    - use disjoint splitting or not
-    #     """
-    #
-    #     self.start_time = timer.time()
-    #
-    #     # Generate the root node
-    #     # constraints   - list of constraints
-    #     # paths         - list of paths, one for each agent
-    #     #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
-    #     # collisions     - list of collisions in paths
-    #     root = {'cost': 0,
-    #             'constraints': [],
-    #             'paths': [],
-    #             'collisions': []}
-    #     for i in range(self.num_of_agents):  # Find initial path for each agent
-    #         path = tt_IDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-    #                       i, root['constraints'])
-    #         if path is None:
-    #             raise BaseException('No solutions')
-    #         root['paths'].append(path)
-    #
-    #     root['cost'] = get_sum_of_cost(root['paths'])
-    #     root['collisions'] = detect_collisions(root['paths'])
-    #     self.push_node(root)
-    #
-    #     # Task 3.1: Testing
-    #     print(root['collisions'])
-    #
-    #     # Task 3.2: Testing
-    #     for collision in root['collisions']:
-    #         print(standard_splitting(collision))
-    #
-    #     ##############################
-    #     # Task 3.3: High-Level Search
-    #     #           Repeat the following as long as the open list is not empty:
-    #     #             1. Get the next node from the open list (you can use self.pop_node()
-    #     #             2. If this node has no collision, return solution
-    #     #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
-    #     #                standard_splitting function). Add a new child node to your open list for each constraint
-    #     #           Ensure to create a copy of any objects that your child nodes might inherit
-    #     while self.open_list:
-    #         P = self.pop_node()
-    #         if len(P['collisions']) == 0:
-    #             root = P
-    #             break
-    #         collision = P['collisions'].pop()
-    #         # task 3.3
-    #         constraints = standard_splitting(collision)
-    #         for constraint in constraints:
-    #             Q = {'cost': 0, 'constraints': [constraint], 'paths': [], 'collisions': None}
-    #             for c in P['constraints']:
-    #                 con = c
-    #                 Q['constraints'].append(con)
-    #             for p in P['paths']:
-    #                 Q['paths'].append(p)
-    #             a = constraint['agent']
-    #             path = tt_IDA(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-    #             if path is not None:
-    #                 Q['paths'][a] = path
-    #                 Q['collisions'] = detect_collisions(Q['paths'])
-    #                 Q['cost'] = get_sum_of_cost(Q['paths'])
-    #                 self.push_node(Q)
-    #
-    #     self.print_results(root)
-    #     return root['paths']
+    def find_solution_tt_IDA(self, disjoint=True):
+        """ Finds paths for all agents from their start locations to their goal locations
+
+        disjoint    - use disjoint splitting or not
+        """
+
+        self.start_time = timer.time()
+
+        # Generate the root node
+        # constraints   - list of constraints
+        # paths         - list of paths, one for each agent
+        #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
+        # collisions     - list of collisions in paths
+        root = {'cost': 0,
+                'constraints': [],
+                'paths': [],
+                'collisions': []}
+        for i in range(self.num_of_agents):  # Find initial path for each agent
+            path, temp1 = tt_IDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+                          i, root['constraints'])
+            self.traversed_nodes += temp1
+            if path is None:
+                raise BaseException('No solutions')
+            root['paths'].append(path)
+
+        root['cost'] = get_sum_of_cost(root['paths'])
+        self.end_time = timer.time()
+        self.print_results(root)
+        return root['paths']
 
     def find_solution_new_A_star(self, disjoint=True):
         """ Finds paths for all agents from their start locations to their goal locations
@@ -502,7 +421,39 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path, temp1, temp2 = new_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
+            path, temp1, temp2, temp3 = new_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
+            self.expanded_nodes += temp1
+            self.generated_nodes += temp2
+            self.traversed_nodes += temp3
+            if path is None:
+                raise BaseException('No solutions')
+            root['paths'].append(path)
+
+        root['cost'] = get_sum_of_cost(root['paths'])
+        self.end_time = timer.time()
+        self.print_results(root)
+        return root['paths']
+
+
+    def find_solution_new_A_star_MAPF(self, disjoint=True):
+        """ Finds paths for all agents from their start locations to their goal locations
+
+        disjoint    - use disjoint splitting or not
+        """
+
+        self.start_time = timer.time()
+
+        # Generate the root node
+        # constraints   - list of constraints
+        # paths         - list of paths, one for each agent
+        #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
+        # collisions     - list of collisions in paths
+        root = {'cost': 0,
+                'constraints': [],
+                'paths': [],
+                'collisions': []}
+        for i in range(self.num_of_agents):  # Find initial path for each agent
+            path, temp1, temp2 = new_a_star_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
             self.expanded_nodes += temp1
             self.generated_nodes += temp2
             if path is None:
@@ -512,22 +463,22 @@ class CBSSolver(object):
         root['cost'] = get_sum_of_cost(root['paths'])
         root['collisions'] = detect_collisions(root['paths'])
         self.push_node(root)
-
-        # Task 3.1: Testing
-        # print(root['collisions'])
-
-        # Task 3.2: Testing
-        # for collision in root['collisions']:
-        #     print(standard_splitting(collision))
-
-        ##############################
-        # Task 3.3: High-Level Search
-        #           Repeat the following as long as the open list is not empty:
-        #             1. Get the next node from the open list (you can use self.pop_node()
-        #             2. If this node has no collision, return solution
-        #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
-        #                standard_splitting function). Add a new child node to your open list for each constraint
-        #           Ensure to create a copy of any objects that your child nodes might inherit
+        #
+        # # Task 3.1: Testing
+        # # print(root['collisions'])
+        #
+        # # Task 3.2: Testing
+        # # for collision in root['collisions']:
+        # #     print(standard_splitting(collision))
+        #
+        # ##############################
+        # # Task 3.3: High-Level Search
+        # #           Repeat the following as long as the open list is not empty:
+        # #             1. Get the next node from the open list (you can use self.pop_node()
+        # #             2. If this node has no collision, return solution
+        # #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
+        # #                standard_splitting function). Add a new child node to your open list for each constraint
+        # #           Ensure to create a copy of any objects that your child nodes might inherit
         while self.open_list:
             P = self.pop_node()
             if len(P['collisions']) == 0:
@@ -544,7 +495,7 @@ class CBSSolver(object):
                 for p in P['paths']:
                     Q['paths'].append(p)
                 a = constraint['agent']
-                path, temp1, temp2 = new_a_star(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
+                path, temp1, temp2 = new_a_star_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
                 self.expanded_nodes += temp1
                 self.generated_nodes += temp2
                 if path is not None:
@@ -555,93 +506,29 @@ class CBSSolver(object):
 
         # for p in root['paths']:
         #     print(p)
+        self.end_time = timer.time()
         self.print_results(root)
         return root['paths']
 
-    # def find_solution_Q_Learning(self, disjoint=True):
-    #     """ Finds paths for all agents from their start locations to their goal locations
-    #
-    #     disjoint    - use disjoint splitting or not
-    #     """
-    #
-    #     self.start_time = timer.time()
-    #
-    #     # Generate the root node
-    #     # constraints   - list of constraints
-    #     # paths         - list of paths, one for each agent
-    #     #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
-    #     # collisions     - list of collisions in paths
-    #     root = {'cost': 0,
-    #             'constraints': [],
-    #             'paths': [],
-    #             'collisions': []}
-    #     for i in range(self.num_of_agents):  # Find initial path for each agent
-    #         path = Q_learning(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-    #                       i, root['constraints'])
-    #         if path is None:
-    #             raise BaseException('No solutions')
-    #         root['paths'].append(path)
-    #
-    #     root['cost'] = get_sum_of_cost(root['paths'])
-    #     root['collisions'] = detect_collisions(root['paths'])
-    #     self.push_node(root)
-    #
-    #     # Task 3.1: Testing
-    #     print(root['collisions'])
-    #
-    #     # Task 3.2: Testing
-    #     for collision in root['collisions']:
-    #         print(standard_splitting(collision))
-    #
-    #     ##############################
-    #     # Task 3.3: High-Level Search
-    #     #           Repeat the following as long as the open list is not empty:
-    #     #             1. Get the next node from the open list (you can use self.pop_node()
-    #     #             2. If this node has no collision, return solution
-    #     #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
-    #     #                standard_splitting function). Add a new child node to your open list for each constraint
-    #     #           Ensure to create a copy of any objects that your child nodes might inherit
-    #     while self.open_list:
-    #         P = self.pop_node()
-    #         if len(P['collisions']) == 0:
-    #             root = P
-    #             break
-    #         collision = P['collisions'].pop()
-    #         # task 3.3
-    #         constraints = standard_splitting(collision)
-    #         for constraint in constraints:
-    #             Q = {'cost': 0, 'constraints': [constraint], 'paths': [], 'collisions': None}
-    #             for c in P['constraints']:
-    #                 con = c
-    #                 Q['constraints'].append(con)
-    #             for p in P['paths']:
-    #                 Q['paths'].append(p)
-    #             a = constraint['agent']
-    #             path = Q_learning(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-    #             if path is not None:
-    #                 Q['paths'][a] = path
-    #                 Q['collisions'] = detect_collisions(Q['paths'])
-    #                 Q['cost'] = get_sum_of_cost(Q['paths'])
-    #                 self.push_node(Q)
-    #
-    #     self.print_results(root)
-    #     return root['paths']
+
 
     def get_expanded_nodes(self):
         return self.expanded_nodes
     def get_generated_nodes(self):
         return self.generated_nodes
+    def get_traversed_nodes(self):
+        return self.traversed_nodes
     def get_cost(self):
         return self.sum_of_cost
 
     def get_time(self):
-        return timer.time() - self.start_time
+        return self.end_time - self.start_time
 
     def print_results(self, node):
         print("\n Found a solution! \n")
         f1 = open("time.txt", 'a')
         f3 = open("expand.txt", 'a')
-        CPU_time = timer.time() - self.start_time
+        CPU_time = self.end_time - self.start_time
         print("CPU time (s):    {:.2f}".format(CPU_time))
         f1.writelines(CPU_time.__str__())
         f1.write('\n')
@@ -651,6 +538,7 @@ class CBSSolver(object):
         f3.writelines(self.expanded_nodes.__str__())
         f3.write('\n')
         print("Generated nodes: {}".format(self.generated_nodes))
+        print("Traversed nodes: {}".format(self.traversed_nodes))
         print()
         f1.close()
         f3.close()

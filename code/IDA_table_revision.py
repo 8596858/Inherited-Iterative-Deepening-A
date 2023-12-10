@@ -14,41 +14,6 @@ def get_sum_of_cost(paths):
     return rst
 
 
-def compute_heuristics(my_map, goal):
-    # Use Dijkstra to build a shortest-path tree rooted at the goal location
-    open_list = []
-    closed_list = dict()
-    root = {'loc': goal, 'cost': 0}
-    heapq.heappush(open_list, (root['cost'], goal, root))
-    closed_list[goal] = root
-    while len(open_list) > 0:
-        (cost, loc, curr) = heapq.heappop(open_list)
-        for dir in range(4):
-            child_loc = move(loc, dir)
-            child_cost = cost + 1
-            if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
-                    or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
-                continue
-            if my_map[child_loc[0]][child_loc[1]]:
-                continue
-            child = {'loc': child_loc, 'cost': child_cost}
-            if child_loc in closed_list:
-                existing_node = closed_list[child_loc]
-                if existing_node['cost'] > child_cost:
-                    closed_list[child_loc] = child
-                    # open_list.delete((existing_node['cost'], existing_node['loc'], existing_node))
-                    heapq.heappush(open_list, (child_cost, child_loc, child))
-            else:
-                closed_list[child_loc] = child
-                heapq.heappush(open_list, (child_cost, child_loc, child))
-
-    # build the heuristics table
-    h_values = dict()
-    for loc, node in closed_list.items():
-        h_values[loc] = node['cost']
-    return h_values
-
-
 def build_constraint_table(constraints, agent):
     constraint_table = []
 
@@ -133,6 +98,7 @@ def compare_nodes(n1, n2):
 def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
     transposition_table = dict()
     earliest_goal_timestep = 0
+    traversed_nodes = [0]
 
     # make sure h_values has start_loc
     flag = False
@@ -141,42 +107,42 @@ def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
             flag = True
             break
     if not flag:
-        return None  # Failed to find solutions
+        return None, 0  # Failed to find solutions
 
     h_value = h_values[start_loc]
-    constraint_table = build_constraint_table(constraints, agent)
+    # constraint_table = build_constraint_table(constraints, agent)
+    constraint_table = []
     root = {'loc': start_loc,
             'g_val': 0,
             'h_val': h_value,
-            'parent': None,
-            'timestep': 0}
-    if len(constraint_table) > 0:
-        for cons in constraint_table:
-            if cons['timestep'] > earliest_goal_timestep \
-                    and cons['loc'] == [goal_loc]:
-                earliest_goal_timestep = cons['timestep']
+            'parent': None}
+    # if len(constraint_table) > 0:
+    #     for cons in constraint_table:
+    #         if cons['timestep'] > earliest_goal_timestep \
+    #                 and cons['loc'] == [goal_loc]:
+    #             earliest_goal_timestep = cons['timestep']
     return_set = {'node': root,
                   'bound': h_value,
                   'found': False}
     while True:
         return_set['node'] = root
-        return_set = DeepSearch(my_map, return_set, h_values, constraint_table, earliest_goal_timestep, transposition_table)
+        return_set = DeepSearch(my_map, return_set, h_values, constraint_table, earliest_goal_timestep, transposition_table, traversed_nodes)
         if return_set['found']:
             path = get_path(return_set['node'])
-            return path
+            return path, traversed_nodes[0]
         if return_set['bound'] == float("inf"):
-            return None
+            return None, 0
 
 
-def DeepSearch(my_map, return_set, h_values, constraints, earliest_goal_timestep, transposition_table):
+def DeepSearch(my_map, return_set, h_values, constraints, earliest_goal_timestep, transposition_table, traversed_nodes):
     succ = []
     b = []
-    if h_values[return_set['node']['loc']] == 0 and return_set['node']['timestep'] >= earliest_goal_timestep:
+    if h_values[return_set['node']['loc']] == 0:
         return {'node': return_set['node'],
                 'bound': 0,
                 'found': True}
     new_bound = float("inf")
-    for dir in range(5):
+    for dir in range(4):
         if dir < 4:
             child_loc = move(return_set['node']['loc'], dir)
         else:
@@ -190,14 +156,13 @@ def DeepSearch(my_map, return_set, h_values, constraints, earliest_goal_timestep
         child = {'loc': child_loc,
                  'g_val': return_set['node']['g_val'] + 1,
                  'h_val': h_values[child_loc],
-                 'parent': return_set['node'],
-                 'timestep': return_set['node']['timestep'] + 1}
-        if is_constrained(return_set['node']['loc'], child['loc'], child['timestep'], constraints) == 0:
-            succ.append(child)
-            if (child['loc']) in transposition_table:
-                b.append(1 + transposition_table[(child['loc'])])
-            else:
-                b.append(1 + h_values[child_loc])
+                 'parent': return_set['node']}
+        traversed_nodes[0] += 1
+        succ.append(child)
+        if (child['loc']) in transposition_table:
+            b.append(1 + transposition_table[(child['loc'])])
+        else:
+            b.append(1 + h_values[child_loc])
     for i in range(len(succ)):
         for j in range(len(succ)):
             if b[i] > b[j]:
@@ -216,7 +181,7 @@ def DeepSearch(my_map, return_set, h_values, constraints, earliest_goal_timestep
             temp = {'node': succ[i],
                     'bound': return_set['bound'] - 1,
                     'found': False}
-            temp = DeepSearch(my_map, temp, h_values, constraints, earliest_goal_timestep, transposition_table)
+            temp = DeepSearch(my_map, temp, h_values, constraints, earliest_goal_timestep, transposition_table, traversed_nodes)
             temp['bound'] = temp['bound'] + 1
         else:
             temp['bound'] = b[i]
