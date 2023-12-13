@@ -26,7 +26,7 @@ def get_path(goal_node):
     return path
 
 
-def IIDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
+def IIDA(my_map, start_loc, goal_loc, h_values):
     sys.setrecursionlimit(1500)
     closed_list = dict()
     set_list = dict()
