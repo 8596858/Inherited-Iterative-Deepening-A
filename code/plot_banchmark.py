@@ -255,7 +255,7 @@ if __name__ == '__main__':
     s = 7
     trace_a_star_D_1 = go.Scatter(x=a_star_time_D_1, y=a_star_peak_D_1, mode='markers', name='A*', marker=dict(color='firebrick', opacity=o, size=s))
     trace_LRTA_D_1 = go.Scatter(x=tt_IDA_time_D_1, y=tt_IDA_peak_D_1, mode='markers', name='LRTA*', marker=dict(color='royalblue', opacity=o, size=s))
-    trace_tt_IDA_D_1 = go.Scatter(x=LRTA_time_D_1, y=LRTA_peak_D_1, mode='markers', name='TT IDA*', marker=dict(color='#f207e7', opacity=o, size=s))
+    trace_tt_IDA_D_1 = go.Scatter(x=LRTA_time_D_1, y=LRTA_peak_D_1, mode='markers', name='TTIDA*', marker=dict(color='#f207e7', opacity=o, size=s))
     trace_IIDA_D_1 = go.Scatter(x=IIDA_time_D_1, y=IIDA_peak_D_1, mode='markers', name='IIDA*', marker=dict(color='#08bd0e', opacity=o, size=s))
 
     trace_a_star_D_2 = go.Scatter(x=a_star_time_D_2, y=a_star_peak_D_2, mode='markers', name='A*', marker=dict(color='firebrick', opacity=o, size=s))

@@ -158,7 +158,7 @@ if __name__ == '__main__':
                 print("***Run A Star***")
                 cbs_a_star = CBSSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_a_star = cbs_a_star.find_solution()
+                paths_a_star = cbs_a_star.find_solution_a_star()
                 mem_a_star = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_a_star))
                 peak_mem_a_star += mem_a_star[1]

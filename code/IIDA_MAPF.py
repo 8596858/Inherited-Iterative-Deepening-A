@@ -51,7 +51,7 @@ def sort_sets(set_list):
     return set_list
 
 
-def new_a_star_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
+def IIDA_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     set_list = dict()
     earliest_goal_timestep = 0

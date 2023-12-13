@@ -2,10 +2,10 @@ import time as timer
 import heapq
 from a_star import compute_heuristics, a_star, get_location, get_sum_of_cost
 from IDA_table_revision import tt_IDA
-from IIDA import new_a_star
+from IIDA import IIDA
 from learning_real_time_a_star import LRTA_star
 from a_star_MAPF import a_star_MAPF
-from IIDA_MAPF import new_a_star_MAPF
+from IIDA_MAPF import IIDA_MAPF
 
 
 def detect_collision(path1, path2):
@@ -106,7 +106,7 @@ class CBSSolver(object):
         self.num_of_expanded += 1
         return node
 
-    def find_solution(self):
+    def find_solution_a_star(self):
 
         self.start_time = timer.time()
 
@@ -126,7 +126,7 @@ class CBSSolver(object):
         self.print_results(root)
         return root['paths']
 
-    def find_solution_MAPF(self):
+    def find_solution_a_star_MAPF(self):
 
         self.start_time = timer.time()
 
@@ -226,7 +226,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = new_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
+            path = IIDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -237,7 +237,7 @@ class CBSSolver(object):
         return root['paths']
 
 
-    def find_solution_new_IIDA_MAPF(self):
+    def find_solution_IIDA_MAPF(self):
 
         self.start_time = timer.time()
 
@@ -246,7 +246,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = new_a_star_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
+            path = IIDA_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -274,7 +274,7 @@ class CBSSolver(object):
                 for p in P['paths']:
                     Q['paths'].append(p)
                 a = constraint['agent']
-                path = new_a_star_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
+                path = IIDA_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
                 if path is not None:
                     Q['paths'][a] = path
                     Q['collisions'] = detect_collisions(Q['paths'])
