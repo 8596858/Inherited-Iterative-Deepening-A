@@ -5,10 +5,7 @@ import glob
 from pathlib import Path
 from cbs import CBSSolver
 from map_generator import map_generator, map_generator_ben
-from independent import IndependentSolver
-from prioritized import PrioritizedPlanningSolver
 from visualize import Animation
-from single_agent_planner import get_sum_of_cost
 
 SOLVER = "CBS"
 
@@ -78,8 +75,6 @@ if __name__ == '__main__':
                         help='The name of the instance file(s)')
     parser.add_argument('--batch', action='store_true', default=False,
                         help='Use batch output instead of animation')
-    parser.add_argument('--disjoint', action='store_true', default=False,
-                        help='Use the disjoint splitting')
     parser.add_argument('--solver', type=str, default=SOLVER,
                         help='The solver to use (one of: {CBS,Independent,Prioritized}), defaults to ' + str(SOLVER))
     parser.add_argument('--size', type=int, default=10,
@@ -103,43 +98,22 @@ if __name__ == '__main__':
 
     result_file = open(str(args.instance).rstrip('/*') + ".csv", "w", buffering=1)
     result_file.write(
-        "Map file name, A* time (s), LRTA time (s), TT IDA time (s), IIDA time (s), A* current memory used, LRTA current "
-        "memory used, TT current IDA memory used, IIDA current memory used, A* peak memory used, LRTA peak memory "
-        "used, TT IDA peak memory used, IIDA peak memory used, A* traversed nodes, LRTA traversed nodes, "
-        "TT IDA traversed nodes, IIDA traversed nodes, A* expended nodes, "
-        "IIDA expended nodes, A* generated nodes, IIDA generated nodes, A* cost, LRTA cost, TT IDA cost, IIDA cost\n")
+        "Map file name, A* time (s), LRTA time (s), TT IDA time (s), IIDA time (s), A* peak memory used, LRTA peak memory "
+        "used, TT IDA peak memory used, IIDA peak memory used, A* cost, LRTA cost, TT IDA cost, IIDA cost\n")
 
-    # num_of_nodes = 0
-    # total_time = 0
-    num_of_nodes_a_star = 0
-    num_of_g_nodes_a_star = 0
-    num_of_t_nodes_a_star = 0
     total_time_a_star = 0
-    total_mem_a_star = 0
     peak_mem_a_star = 0
     sum_of_cost_a_star = 0
-    # num_of_nodes_JPS = 0
-    # total_time_JPS = 0
-    # sum_of_cost_JPS = 0
-    # total_time_IDA = 0
-    # total_mem_IDA = 0
-    # peak_mem_IDA = 0
-    # sum_of_cost_IDA = 0
+
     total_time_tt_IDA = 0
-    num_of_t_nodes_tt_IDA = 0
-    total_mem_tt_IDA = 0
     peak_mem_tt_IDA = 0
     sum_of_cost_tt_IDA = 0
+
     total_time_LRTA = 0
-    num_of_t_nodes_LRTA = 0
-    total_mem_LRTA = 0
     peak_mem_LRTA = 0
     sum_of_cost_LRTA = 0
-    num_of_nodes_n_IDA = 0
-    num_of_g_nodes_n_IDA = 0
-    num_of_t_nodes_n_IDA = 0
+
     total_time_n_IDA = 0
-    total_mem_n_IDA = 0
     peak_mem_n_IDA = 0
     sum_of_cost_n_IDA = 0
     same_cost = 0
@@ -173,70 +147,46 @@ if __name__ == '__main__':
                 print("***Run IIDA***")
                 cbs_n_ida = CBSSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_n_ida = cbs_n_ida.find_solution_new_A_star_MAPF(args.disjoint)
+                paths_n_ida = cbs_n_ida.find_solution_IIDA()
                 mem_n_IDA = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_n_IDA))
-                total_mem_n_IDA += mem_n_IDA[0]
                 peak_mem_n_IDA += mem_n_IDA[1]
                 tracemalloc.stop()
-                num_of_nodes_n_IDA += cbs_n_ida.get_expanded_nodes()
-                num_of_g_nodes_n_IDA += cbs_n_ida.get_generated_nodes()
-                num_of_t_nodes_n_IDA += cbs_n_ida.get_traversed_nodes()
                 total_time_n_IDA += cbs_n_ida.get_time()
                 sum_of_cost_n_IDA += cbs_n_ida.get_cost()
 
                 print("***Run A Star***")
                 cbs_a_star = CBSSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_a_star = cbs_a_star.find_solution_MAPF(args.disjoint)
+                paths_a_star = cbs_a_star.find_solution()
                 mem_a_star = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_a_star))
-                total_mem_a_star += mem_a_star[0]
                 peak_mem_a_star += mem_a_star[1]
                 tracemalloc.stop()
-                num_of_nodes_a_star += cbs_a_star.get_expanded_nodes()
-                num_of_g_nodes_a_star += cbs_a_star.get_generated_nodes()
-                num_of_t_nodes_a_star += cbs_a_star.get_traversed_nodes()
                 total_time_a_star += cbs_a_star.get_time()
                 sum_of_cost_a_star += cbs_a_star.get_cost()
 
-                # print("***Run IDA***")
-                # tracemalloc.start()
-                # cbs_ida = CBSSolver(my_map, starts, goals)
-                # paths_ida = cbs_ida.find_solution_IDA(args.disjoint)
-                # mem_IDA = tracemalloc.get_traced_memory()
-                # print("Memory used: {}".format(mem_IDA))
-                # total_mem_IDA += mem_IDA[0]
-                # peak_mem_IDA += mem_IDA[1]
-                # tracemalloc.stop()
-                # total_time_IDA += cbs_ida.get_time()
-                # sum_of_cost_IDA += cbs_ida.get_cost()
+                print("***Run LRTA***")
+                cbs_LRTA = CBSSolver(my_map, starts, goals)
+                tracemalloc.start()
+                paths_LRTA = cbs_LRTA.find_solution_LRTA_star()
+                mem_LRTA = tracemalloc.get_traced_memory()
+                print("Memory used: {}".format(mem_LRTA))
+                peak_mem_LRTA += mem_LRTA[1]
+                tracemalloc.stop()
+                total_time_LRTA += cbs_LRTA.get_time()
+                sum_of_cost_LRTA += cbs_LRTA.get_cost()
 
-                # print("***Run LRTA***")
-                # cbs_LRTA = CBSSolver(my_map, starts, goals)
-                # tracemalloc.start()
-                # paths_LRTA = cbs_LRTA.find_solution_LRTA_star(args.disjoint)
-                # mem_LRTA = tracemalloc.get_traced_memory()
-                # print("Memory used: {}".format(mem_LRTA))
-                # total_mem_LRTA += mem_LRTA[0]
-                # peak_mem_LRTA += mem_LRTA[1]
-                # tracemalloc.stop()
-                # num_of_t_nodes_LRTA += cbs_LRTA.get_traversed_nodes()
-                # total_time_LRTA += cbs_LRTA.get_time()
-                # sum_of_cost_LRTA += cbs_LRTA.get_cost()
-                #
-                # print("***Run transposition table IDA***")
-                # cbs_tt_ida = CBSSolver(my_map, starts, goals)
-                # tracemalloc.start()
-                # paths_tt_ida = cbs_tt_ida.find_solution_tt_IDA(args.disjoint)
-                # mem_tt_IDA = tracemalloc.get_traced_memory()
-                # print("Memory used: {}".format(mem_tt_IDA))
-                # total_mem_tt_IDA += mem_tt_IDA[0]
-                # peak_mem_tt_IDA += mem_tt_IDA[1]
-                # tracemalloc.stop()
-                # num_of_t_nodes_tt_IDA += cbs_tt_ida.get_traversed_nodes()
-                # total_time_tt_IDA += cbs_tt_ida.get_time()
-                # sum_of_cost_tt_IDA += cbs_tt_ida.get_cost()
+                print("***Run transposition table IDA***")
+                cbs_tt_ida = CBSSolver(my_map, starts, goals)
+                tracemalloc.start()
+                paths_tt_ida = cbs_tt_ida.find_solution_tt_IDA()
+                mem_tt_IDA = tracemalloc.get_traced_memory()
+                print("Memory used: {}".format(mem_tt_IDA))
+                peak_mem_tt_IDA += mem_tt_IDA[1]
+                tracemalloc.stop()
+                total_time_tt_IDA += cbs_tt_ida.get_time()
+                sum_of_cost_tt_IDA += cbs_tt_ida.get_cost()
 
                 if cbs_a_star.get_cost() == cbs_n_ida.get_cost():
                     same_cost += 1
@@ -245,84 +195,64 @@ if __name__ == '__main__':
                 raise RuntimeError("Unknown solver!")
 
             # cost = get_sum_of_cost(paths)
-            result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
-                                                                                                      cbs_a_star.get_time(),
-                                                                                                      0,
-                                                                                                      0,
-                                                                                                      cbs_n_ida.get_time(),
-                                                                                                      mem_a_star[0],
-                                                                                                      0,
-                                                                                                      0,
-                                                                                                      mem_n_IDA[0],
-                                                                                                      mem_a_star[1],
-                                                                                                      0,
-                                                                                                      0,
-                                                                                                      mem_n_IDA[1],
-                                                                                                      cbs_a_star.get_traversed_nodes(),
-                                                                                                      0,
-                                                                                                      0,
-                                                                                                      cbs_n_ida.get_traversed_nodes(),
-                                                                                                      cbs_a_star.get_expanded_nodes(),
-                                                                                                      cbs_n_ida.get_expanded_nodes(),
-                                                                                                      cbs_a_star.get_generated_nodes(),
-                                                                                                      cbs_n_ida.get_generated_nodes(),
-                                                                                                      cbs_a_star.get_cost(),
-                                                                                                      0,
-                                                                                                      0,
-                                                                                                      cbs_n_ida.get_cost()))
+            result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
+                                                                                cbs_a_star.get_time(),
+                                                                                cbs_LRTA.get_time(),
+                                                                                cbs_tt_ida.get_time(),
+                                                                                cbs_n_ida.get_time(),
+                                                                                mem_a_star[1],
+                                                                                mem_LRTA[1],
+                                                                                mem_tt_IDA[1],
+                                                                                mem_n_IDA[1],
+                                                                                cbs_a_star.get_cost(),
+                                                                                cbs_LRTA.get_cost(),
+                                                                                cbs_tt_ida.get_cost(),
+                                                                                cbs_n_ida.get_cost()))
+            # result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
+            #                                                                   cbs_a_star.get_time(),
+            #                                                                   cbs_a_star.get_expanded_nodes_MAPF(),
+            #                                                                   cbs_a_star.get_generated_nodes_MAPF(),
+            #                                                                   cbs_n_ida.get_time(),
+            #                                                                   cbs_n_ida.get_expanded_nodes_MAPF(),
+            #                                                                   cbs_n_ida.get_generated_nodes_MAPF(),
+            #                                                                   mem_a_star[1],
+            #                                                                   mem_n_IDA[1],
+            #                                                                   cbs_a_star.get_cost(),
+            #                                                                   cbs_n_ida.get_cost()))
 
             if not args.batch:
                 print("***Test paths on a simulation***")
                 animation = Animation(my_map, starts, goals, paths_n_ida)
                 # animation.save("output.mp4", 1.0)
                 animation.show()
-    print("Total expanded nodes A star:", num_of_nodes_a_star)
-    print("Total generated nodes A star:", num_of_g_nodes_a_star)
-    print("Total traversed nodes A star:", num_of_t_nodes_a_star)
+
     print("Total time A star:", total_time_a_star)
-    print("Total memory A star:", total_mem_a_star)
+    print("Total memory A star:", peak_mem_a_star)
     print("Total cost A star:", sum_of_cost_a_star)
 
-    print("Total traversed nodes LRTA:", num_of_t_nodes_LRTA)
     print("Total time LRTA:", total_time_LRTA)
-    print("Total memory LRTA:", total_mem_LRTA)
+    print("Total memory LRTA:", peak_mem_LRTA)
     print("Total cost LRTA:", sum_of_cost_LRTA)
 
-    print("Total traversed nodes transposition table IDA:", num_of_t_nodes_tt_IDA)
     print("Total time transposition table IDA:", total_time_tt_IDA)
-    print("Total memory transposition table IDA:", total_mem_tt_IDA)
+    print("Total memory transposition table IDA:", peak_mem_tt_IDA)
     print("Total cost transposition table IDA:", sum_of_cost_tt_IDA)
 
-    print("Total expanded nodes IIDA:", num_of_nodes_n_IDA)
-    print("Total generated nodes IIDA:", num_of_g_nodes_n_IDA)
-    print("Total traversed nodes IIDA:", num_of_t_nodes_n_IDA)
     print("Total time IIDA:", total_time_n_IDA)
-    print("Total memory IIDA:", total_mem_n_IDA)
+    print("Total memory IIDA:", peak_mem_n_IDA)
     print("Total cost IIDA:", sum_of_cost_n_IDA)
     print("The same cost:", same_cost)
     result_file.write(
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format("Sum", total_time_a_star,
-                                                                                              total_time_LRTA,
-                                                                                              total_time_tt_IDA,
-                                                                                              total_time_n_IDA,
-                                                                                              total_mem_a_star,
-                                                                                              total_mem_LRTA,
-                                                                                              total_mem_tt_IDA,
-                                                                                              total_mem_n_IDA,
-                                                                                              peak_mem_a_star,
-                                                                                              peak_mem_LRTA,
-                                                                                              peak_mem_tt_IDA,
-                                                                                              peak_mem_n_IDA,
-                                                                                              num_of_t_nodes_a_star,
-                                                                                              num_of_t_nodes_LRTA,
-                                                                                              num_of_t_nodes_tt_IDA,
-                                                                                              num_of_t_nodes_n_IDA,
-                                                                                              num_of_nodes_a_star,
-                                                                                              num_of_nodes_n_IDA,
-                                                                                              num_of_g_nodes_a_star,
-                                                                                              num_of_g_nodes_n_IDA,
-                                                                                              sum_of_cost_a_star,
-                                                                                              sum_of_cost_LRTA,
-                                                                                              sum_of_cost_tt_IDA,
-                                                                                              sum_of_cost_n_IDA))
+        "{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format("Sum", total_time_a_star,
+                                                          total_time_LRTA,
+                                                          total_time_tt_IDA,
+                                                          total_time_n_IDA,
+                                                          peak_mem_a_star,
+                                                          peak_mem_LRTA,
+                                                          peak_mem_tt_IDA,
+                                                          peak_mem_n_IDA,
+                                                          sum_of_cost_a_star,
+                                                          sum_of_cost_LRTA,
+                                                          sum_of_cost_tt_IDA,
+                                                          sum_of_cost_n_IDA))
     result_file.close()
