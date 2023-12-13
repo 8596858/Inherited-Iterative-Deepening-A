@@ -5,7 +5,7 @@ from plotly.subplots import make_subplots
 import pandas as pd
 
 if __name__ == '__main__':
-    file_path = 'experiment result_random_M.xlsx'  # 替换成您的 Excel 文件路径
+    file_path = 'experiment result_Single_Agent.xlsx'  # 替换成您的 Excel 文件路径
     data_result_random = pd.read_excel(file_path, 'Sheet1')
     # Add data
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # dash options include 'dash', 'dot', and 'dashdot'
     trace_a_star_time = go.Scatter(x=map_size, y=a_star_time, name='A*', line=dict(color='firebrick', width=2))
     trace_LRTA_time = go.Scatter(x=map_size, y=LRTA_time, name='LRTA*', line=dict(color='royalblue', width=2))
-    trace_tt_IDA_time = go.Scatter(x=map_size, y=tt_IDA_time, name='TT IDA*', line=dict(color='#f207e7', width=2))
+    trace_tt_IDA_time = go.Scatter(x=map_size, y=tt_IDA_time, name='TTIDA*', line=dict(color='#f207e7', width=2))
     trace_IIDA_time = go.Scatter(x=map_size, y=IIDA_time, name='IIDA*', line=dict(color='#08bd0e', width=2))
 
     # trace_a_star_current = go.Scatter(x=map_size, y=a_star_current, name='A*', line=dict(color='firebrick', width=2))
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     trace_a_star_peak = go.Scatter(x=map_size, y=a_star_peak, name='A*', line=dict(color='firebrick', width=2))
     trace_LRTA_peak = go.Scatter(x=map_size, y=LRTA_peak, name='LRTA*', line=dict(color='royalblue', width=2))
-    trace_tt_IDA_peak = go.Scatter(x=map_size, y=tt_IDA_peak, name='TT IDA*', line=dict(color='#f207e7', width=2))
+    trace_tt_IDA_peak = go.Scatter(x=map_size, y=tt_IDA_peak, name='TTIDA*', line=dict(color='#f207e7', width=2))
     trace_IIDA_peak = go.Scatter(x=map_size, y=IIDA_peak, name='IIDA*', line=dict(color='#08bd0e', width=2))
 
     # trace_a_star_edge = go.Scatter(x=map_size, y=a_star_edge, name='A*', line=dict(color='firebrick', width=2))
@@ -143,9 +143,9 @@ if __name__ == '__main__':
     fig = make_subplots(rows=1, cols=2, subplot_titles=('CPU Running Time', 'CPU Running Time'))
 
     fig.add_trace(trace_a_star_time, row=1, col=1)
-    fig.add_trace(trace_IIDA_time, row=1, col=1)
     fig.add_trace(trace_LRTA_time, row=1, col=2)
     fig.add_trace(trace_tt_IDA_time, row=1, col=2)
+    fig.add_trace(trace_IIDA_time, row=1, col=1)
     fig.update_layout(height=300, width=600, font=dict(family="Arial", size=15, color="black"), legend=dict(x=0, y=-0.5, orientation='h'))
     fig.update_xaxes(title_text='Map Size (n x n)', row=1, col=1)
     fig.update_xaxes(title_text='Map Size (n x n)', row=1, col=2)
