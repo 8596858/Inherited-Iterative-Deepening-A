@@ -113,9 +113,9 @@ if __name__ == '__main__':
     peak_mem_LRTA = 0
     sum_of_cost_LRTA = 0
 
-    total_time_n_IDA = 0
+    total_time_IIDA = 0
     peak_mem_n_IDA = 0
-    sum_of_cost_n_IDA = 0
+    sum_of_cost_IIDA = 0
     same_cost = 0
     if args.generate_map:
         if args.self:
@@ -145,15 +145,15 @@ if __name__ == '__main__':
                 print(index)
 
                 print("***Run IIDA***")
-                cbs_n_ida = CBSSolver(my_map, starts, goals)
+                cbs_IIDA = CBSSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_n_ida = cbs_n_ida.find_solution_IIDA()
-                mem_n_IDA = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_n_IDA))
-                peak_mem_n_IDA += mem_n_IDA[1]
+                paths_n_ida = cbs_IIDA.find_solution_IIDA()
+                mem_IIDA = tracemalloc.get_traced_memory()
+                print("Memory used: {}".format(mem_IIDA))
+                peak_mem_n_IDA += mem_IIDA[1]
                 tracemalloc.stop()
-                total_time_n_IDA += cbs_n_ida.get_time()
-                sum_of_cost_n_IDA += cbs_n_ida.get_cost()
+                total_time_IIDA += cbs_IIDA.get_time()
+                sum_of_cost_IIDA += cbs_IIDA.get_cost()
 
                 print("***Run A Star***")
                 cbs_a_star = CBSSolver(my_map, starts, goals)
@@ -188,7 +188,7 @@ if __name__ == '__main__':
                 total_time_tt_IDA += cbs_tt_ida.get_time()
                 sum_of_cost_tt_IDA += cbs_tt_ida.get_cost()
 
-                if cbs_a_star.get_cost() == cbs_n_ida.get_cost():
+                if cbs_a_star.get_cost() == cbs_IIDA.get_cost():
                     same_cost += 1
                 print()
             else:
@@ -199,15 +199,15 @@ if __name__ == '__main__':
                                                                                 cbs_a_star.get_time(),
                                                                                 cbs_LRTA.get_time(),
                                                                                 cbs_tt_ida.get_time(),
-                                                                                cbs_n_ida.get_time(),
+                                                                                cbs_IIDA.get_time(),
                                                                                 mem_a_star[1],
                                                                                 mem_LRTA[1],
                                                                                 mem_tt_IDA[1],
-                                                                                mem_n_IDA[1],
+                                                                                mem_IIDA[1],
                                                                                 cbs_a_star.get_cost(),
                                                                                 cbs_LRTA.get_cost(),
                                                                                 cbs_tt_ida.get_cost(),
-                                                                                cbs_n_ida.get_cost()))
+                                                                                cbs_IIDA.get_cost()))
             # result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
             #                                                                   cbs_a_star.get_time(),
             #                                                                   cbs_a_star.get_expanded_nodes_MAPF(),
@@ -238,15 +238,15 @@ if __name__ == '__main__':
     print("Total memory transposition table IDA:", peak_mem_tt_IDA)
     print("Total cost transposition table IDA:", sum_of_cost_tt_IDA)
 
-    print("Total time IIDA:", total_time_n_IDA)
+    print("Total time IIDA:", total_time_IIDA)
     print("Total memory IIDA:", peak_mem_n_IDA)
-    print("Total cost IIDA:", sum_of_cost_n_IDA)
+    print("Total cost IIDA:", sum_of_cost_IIDA)
     print("The same cost:", same_cost)
     result_file.write(
         "{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format("Sum", total_time_a_star,
                                                           total_time_LRTA,
                                                           total_time_tt_IDA,
-                                                          total_time_n_IDA,
+                                                          total_time_IIDA,
                                                           peak_mem_a_star,
                                                           peak_mem_LRTA,
                                                           peak_mem_tt_IDA,
@@ -254,5 +254,5 @@ if __name__ == '__main__':
                                                           sum_of_cost_a_star,
                                                           sum_of_cost_LRTA,
                                                           sum_of_cost_tt_IDA,
-                                                          sum_of_cost_n_IDA))
+                                                          sum_of_cost_IIDA))
     result_file.close()

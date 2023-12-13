@@ -50,20 +50,20 @@ def compute_heuristics(my_map, goal):
     # return h_values
 
     # Manhattan
-    # h_values = dict()
-    # for i in range(len(my_map)):
-    #     for j in range(len(my_map[0])):
-    #         if not my_map[i][j]:
-    #             h_values[(i, j)] = abs(i - goal[0]) + abs(j - goal[1])
-    # return h_values
-
-    # Euclidean distance
     h_values = dict()
     for i in range(len(my_map)):
         for j in range(len(my_map[0])):
             if not my_map[i][j]:
-                h_values[(i, j)] = int(math.sqrt(math.pow(i - goal[0], 2) + math.pow(j - goal[1], 2)))
+                h_values[(i, j)] = abs(i - goal[0]) + abs(j - goal[1])
     return h_values
+
+    # Euclidean distance
+    # h_values = dict()
+    # for i in range(len(my_map)):
+    #     for j in range(len(my_map[0])):
+    #         if not my_map[i][j]:
+    #             h_values[(i, j)] = int(math.sqrt(math.pow(i - goal[0], 2) + math.pow(j - goal[1], 2)))
+    # return h_values
 
 
 def build_constraint_table(constraints, agent):
