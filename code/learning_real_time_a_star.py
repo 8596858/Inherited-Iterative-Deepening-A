@@ -22,7 +22,7 @@ def sort_sets(set_list):
     return set_list
 
 
-def LRTA_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
+def LRTA_star(my_map, start_loc, goal_loc, h_values):
     while True:
         path, changed = LRAT_trial(my_map, start_loc, goal_loc, h_values)
         if not changed:

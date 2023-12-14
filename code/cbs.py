@@ -183,8 +183,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):
-            path = LRTA_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, root['constraints'])
+            path = LRTA_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
