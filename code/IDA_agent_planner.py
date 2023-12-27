@@ -7,36 +7,6 @@ def move(loc, dir):
     return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
 
 
-def get_sum_of_cost(paths):
-    rst = 0
-    for path in paths:
-        rst += len(path) - 1
-    return rst
-
-
-def build_constraint_table(constraints, agent):
-    constraint_table = []
-
-    # task 4
-    for constraint in constraints:
-        if 'positive' not in constraint:
-            constraint['positive'] = False
-        if constraint['agent'] == agent:
-            constraint_table.append(constraint)
-        if constraint['agent'] != agent and constraint['positive'] == True:
-            if len(constraint['loc']) == 2:
-                con = {'agent': agent, 'loc': [constraint['loc'][1], constraint['loc'][0]],
-                       'timestep': constraint['timestep'], 'positive': False}
-                constraint_table.append(con)
-            else:
-                con = {'agent': agent, 'loc': [constraint['loc'][0]],
-                       'timestep': constraint['timestep'], 'positive': False}
-                constraint_table.append(con)
-
-    return constraint_table
-    pass
-
-
 def get_location(path, time):
     if time < 0:
         return path[0]
@@ -54,30 +24,6 @@ def get_path(goal_node):
         curr = curr['parent']
     path.reverse()
     return path
-
-
-def is_constrained(curr_loc, next_loc, next_time, constraint_table):
-    # task 4
-    for constraint in constraint_table:
-        if constraint['positive']:
-            if len(constraint['loc']) == 1:
-                if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
-                    return 1
-            else:
-                if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
-                        constraint['loc'][0]:
-                    return 1
-        else:
-            if len(constraint['loc']) == 1:
-                if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
-                    return 2
-            else:
-                if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
-                        constraint['loc'][0]:
-                    return 2
-    return 0
-
-    pass
 
 
 def push_node(open_list, node):
