@@ -251,8 +251,8 @@ if __name__ == '__main__':
     # LRTA_data_1 = {'x_values': LRTA_time, 'y_values': LRTA_peak}
     # TTIDA_data_1 = {'x_values': tt_IDA_time, 'y_values': tt_IDA_peak}
     # IIDA_data_1 = {'x_values': IIDA_time, 'y_values': IIDA_peak}
-    o = 0.6
-    s = 7
+    o = 0.5
+    s = 8
     trace_a_star_D_1 = go.Scatter(x=a_star_time_D_1, y=a_star_peak_D_1, mode='markers', name='A*', marker=dict(color='firebrick', opacity=o, size=s))
     trace_LRTA_D_1 = go.Scatter(x=LRTA_time_D_1, y=LRTA_peak_D_1, mode='markers', name='LRTA*', marker=dict(color='royalblue', opacity=o, size=s))
     trace_tt_IDA_D_1 = go.Scatter(x=tt_IDA_time_D_1, y=tt_IDA_peak_D_1, mode='markers', name='TTIDA*', marker=dict(color='#f207e7', opacity=o, size=s))
