@@ -147,7 +147,7 @@ if __name__ == '__main__':
                 print("***Run IIDA***")
                 cbs_IIDA = CBSSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_n_ida = cbs_IIDA.find_solution_IIDA_MAPF()
+                paths_n_ida = cbs_IIDA.find_solution_IIDA()
                 mem_IIDA = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_IIDA))
                 peak_mem_n_IDA += mem_IIDA[1]
@@ -158,7 +158,7 @@ if __name__ == '__main__':
                 print("***Run A Star***")
                 cbs_a_star = CBSSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_a_star = cbs_a_star.find_solution_a_star_MAPF()
+                paths_a_star = cbs_a_star.find_solution_a_star()
                 mem_a_star = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_a_star))
                 peak_mem_a_star += mem_a_star[1]
@@ -166,27 +166,27 @@ if __name__ == '__main__':
                 total_time_a_star += cbs_a_star.get_time()
                 sum_of_cost_a_star += cbs_a_star.get_cost()
 
-                # print("***Run LRTA***")
-                # cbs_LRTA = CBSSolver(my_map, starts, goals)
-                # tracemalloc.start()
-                # paths_LRTA = cbs_LRTA.find_solution_LRTA_star()
-                # mem_LRTA = tracemalloc.get_traced_memory()
-                # print("Memory used: {}".format(mem_LRTA))
-                # peak_mem_LRTA += mem_LRTA[1]
-                # tracemalloc.stop()
-                # total_time_LRTA += cbs_LRTA.get_time()
-                # sum_of_cost_LRTA += cbs_LRTA.get_cost()
-                #
-                # print("***Run transposition table IDA***")
-                # cbs_tt_ida = CBSSolver(my_map, starts, goals)
-                # tracemalloc.start()
-                # paths_tt_ida = cbs_tt_ida.find_solution_tt_IDA()
-                # mem_tt_IDA = tracemalloc.get_traced_memory()
-                # print("Memory used: {}".format(mem_tt_IDA))
-                # peak_mem_tt_IDA += mem_tt_IDA[1]
-                # tracemalloc.stop()
-                # total_time_tt_IDA += cbs_tt_ida.get_time()
-                # sum_of_cost_tt_IDA += cbs_tt_ida.get_cost()
+                print("***Run LRTA***")
+                cbs_LRTA = CBSSolver(my_map, starts, goals)
+                tracemalloc.start()
+                paths_LRTA = cbs_LRTA.find_solution_LRTA_star()
+                mem_LRTA = tracemalloc.get_traced_memory()
+                print("Memory used: {}".format(mem_LRTA))
+                peak_mem_LRTA += mem_LRTA[1]
+                tracemalloc.stop()
+                total_time_LRTA += cbs_LRTA.get_time()
+                sum_of_cost_LRTA += cbs_LRTA.get_cost()
+
+                print("***Run transposition table IDA***")
+                cbs_tt_ida = CBSSolver(my_map, starts, goals)
+                tracemalloc.start()
+                paths_tt_ida = cbs_tt_ida.find_solution_tt_IDA()
+                mem_tt_IDA = tracemalloc.get_traced_memory()
+                print("Memory used: {}".format(mem_tt_IDA))
+                peak_mem_tt_IDA += mem_tt_IDA[1]
+                tracemalloc.stop()
+                total_time_tt_IDA += cbs_tt_ida.get_time()
+                sum_of_cost_tt_IDA += cbs_tt_ida.get_cost()
 
                 if cbs_a_star.get_cost() == cbs_IIDA.get_cost():
                     same_cost += 1
@@ -195,30 +195,30 @@ if __name__ == '__main__':
                 raise RuntimeError("Unknown solver!")
 
             # cost = get_sum_of_cost(paths)
-            # result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
-            #                                                                     cbs_a_star.get_time(),
-            #                                                                     cbs_LRTA.get_time(),
-            #                                                                     cbs_tt_ida.get_time(),
-            #                                                                     cbs_IIDA.get_time(),
-            #                                                                     mem_a_star[1],
-            #                                                                     mem_LRTA[1],
-            #                                                                     mem_tt_IDA[1],
-            #                                                                     mem_IIDA[1],
-            #                                                                     cbs_a_star.get_cost(),
-            #                                                                     cbs_LRTA.get_cost(),
-            #                                                                     cbs_tt_ida.get_cost(),
-            #                                                                     cbs_IIDA.get_cost()))
-            result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
-                                                                              cbs_a_star.get_time(),
-                                                                              cbs_a_star.get_expanded_nodes_MAPF(),
-                                                                              cbs_a_star.get_generated_nodes_MAPF(),
-                                                                              cbs_IIDA.get_time(),
-                                                                              cbs_IIDA.get_expanded_nodes_MAPF(),
-                                                                              cbs_IIDA.get_generated_nodes_MAPF(),
-                                                                              mem_a_star[1],
-                                                                              mem_IIDA[1],
-                                                                              cbs_a_star.get_cost(),
-                                                                              cbs_IIDA.get_cost()))
+            result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
+                                                                                cbs_a_star.get_time(),
+                                                                                cbs_LRTA.get_time(),
+                                                                                cbs_tt_ida.get_time(),
+                                                                                cbs_IIDA.get_time(),
+                                                                                mem_a_star[1],
+                                                                                mem_LRTA[1],
+                                                                                mem_tt_IDA[1],
+                                                                                mem_IIDA[1],
+                                                                                cbs_a_star.get_cost(),
+                                                                                cbs_LRTA.get_cost(),
+                                                                                cbs_tt_ida.get_cost(),
+                                                                                cbs_IIDA.get_cost()))
+            # result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
+            #                                                                   cbs_a_star.get_time(),
+            #                                                                   cbs_a_star.get_expanded_nodes_MAPF(),
+            #                                                                   cbs_a_star.get_generated_nodes_MAPF(),
+            #                                                                   cbs_IIDA.get_time(),
+            #                                                                   cbs_IIDA.get_expanded_nodes_MAPF(),
+            #                                                                   cbs_IIDA.get_generated_nodes_MAPF(),
+            #                                                                   mem_a_star[1],
+            #                                                                   mem_IIDA[1],
+            #                                                                   cbs_a_star.get_cost(),
+            #                                                                   cbs_IIDA.get_cost()))
 
             if not args.batch:
                 print("***Test paths on a simulation***")
@@ -226,9 +226,9 @@ if __name__ == '__main__':
                 # animation.save("output.mp4", 1.0)
                 animation.show()
 
-    print("Total time A star:", total_time_a_star)
-    print("Total memory A star:", peak_mem_a_star)
-    print("Total cost A star:", sum_of_cost_a_star)
+    print("Total time A*:", total_time_a_star)
+    print("Total memory A^:", peak_mem_a_star)
+    print("Total cost A*:", sum_of_cost_a_star)
 
     print("Total time LRTA:", total_time_LRTA)
     print("Total memory LRTA:", peak_mem_LRTA)
