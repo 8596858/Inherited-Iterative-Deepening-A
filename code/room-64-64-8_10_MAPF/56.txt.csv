@@ -1,0 +1,3 @@
+Map file name, A* time (s), LRTA time (s), TT IDA time (s), IIDA time (s), A* current memory used, LRTA current memory used, TT current IDA memory used, IIDA current memory used, A* peak memory used, LRTA peak memory used, TT IDA peak memory used, IIDA peak memory used, A* traversed nodes, LRTA traversed nodes, TT IDA traversed nodes, IIDA traversed nodes, A* expended nodes, IIDA expended nodes, A* generated nodes, IIDA generated nodes, A* cost, LRTA cost, TT IDA cost, IIDA cost
+map/56.txt,0.16607117652893066,0,0,0.06537222862243652,321201,0,0,186653,5430628,0,0,2317956,0,0,0,0,13412,5,16684,14698,186,0,0,186
+Sum,0.16607117652893066,0,0,0.06537222862243652,321201,0,0,186653,5430628,0,0,2317956,0,0,0,0,13412,5,16684,14698,186,0,0,186
