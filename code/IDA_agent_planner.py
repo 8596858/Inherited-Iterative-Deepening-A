@@ -43,7 +43,7 @@ def get_h_value(p1, p2):
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
 
-def ID_a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
+def ID_a_star(my_map, start_loc, goal_loc, h_values):
     open_list = []
     closed_list = dict()
     earliest_goal_timestep = 0

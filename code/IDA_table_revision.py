@@ -4,7 +4,7 @@ def move(loc, dir):
     return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
 
 
-def tt_IDA(my_map, start_loc, goal_loc, h_values, agent, constraints):
+def tt_IDA(my_map, start_loc, goal_loc, h_values):
     transposition_table = dict()
     earliest_goal_timestep = 0
     # traversed_nodes = [0]

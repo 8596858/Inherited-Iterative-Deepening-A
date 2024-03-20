@@ -1,7 +1,9 @@
 import time as timer
 import heapq
 import random
-from a_star import compute_heuristics, a_star, get_location, get_sum_of_cost
+from a_star import a_star, get_location, get_sum_of_cost
+from heuristic import compute_heuristics
+from fringe import fringe
 from IDA_agent_planner import ID_a_star
 from IDA_table_revision import tt_IDA
 from IIDA import IIDA
@@ -223,6 +225,29 @@ class CBSSolver(object):
         self.print_results(root)
         return root['paths']
 
+    def find_solution_fringe(self, disjoint=True):
+        """ Finds paths for all agents from their start locations to their goal locations
+
+        disjoint    - use disjoint splitting or not
+        """
+
+        self.start_time = timer.time()
+
+        root = {'cost': 0,
+                'constraints': [],
+                'paths': [],
+                'collisions': []}
+        for i in range(self.num_of_agents):  # Find initial path for each agent
+            path = fringe(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
+            if path is None:
+                raise BaseException('No solutions')
+            root['paths'].append(path)
+
+        root['cost'] = get_sum_of_cost(root['paths'])
+        self.end_time = timer.time()
+        self.print_results(root)
+        return root['paths']
+
     def find_solution_a_star_MAPF(self, disjoint=True):
         """ Finds paths for all agents from their start locations to their goal locations
 
@@ -297,9 +322,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path, temp1 = LRTA_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, root['constraints'])
-            self.traversed_nodes += temp1
+            path = LRTA_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -323,8 +346,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = ID_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, root['constraints'])
+            path = ID_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -348,9 +370,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path, temp1 = tt_IDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, root['constraints'])
-            self.traversed_nodes += temp1
+            path = tt_IDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)

@@ -98,12 +98,16 @@ if __name__ == '__main__':
 
     result_file = open(str(args.instance).rstrip('/*') + ".csv", "w", buffering=1)
     result_file.write(
-        "Map file name, A* time (s), LRTA time (s), TT IDA time (s), IIDA time (s), A* peak memory used, LRTA peak memory "
-        "used, TT IDA peak memory used, IIDA peak memory used, A* cost, LRTA cost, TT IDA cost, IIDA cost\n")
+        "Map file name,A* time (s),fringe time (s),LRTA time (s),TT IDA time (s),IIDA time (s),A* peak memory used,fringe peak memory used,LRTA peak memory "
+        "used,TT IDA peak memory used,IIDA peak memory used,A* cost,fringe cost,LRTA cost,TT IDA cost,IIDA cost\n")
 
     total_time_a_star = 0
     peak_mem_a_star = 0
     sum_of_cost_a_star = 0
+
+    total_time_fringe = 0
+    peak_mem_fringe = 0
+    sum_of_cost_fringe = 0
 
     total_time_tt_IDA = 0
     peak_mem_tt_IDA = 0
@@ -114,7 +118,7 @@ if __name__ == '__main__':
     sum_of_cost_LRTA = 0
 
     total_time_IIDA = 0
-    peak_mem_n_IDA = 0
+    peak_mem_IIDA = 0
     sum_of_cost_IIDA = 0
     same_cost = 0
     if args.generate_map:
@@ -150,10 +154,21 @@ if __name__ == '__main__':
                 paths_n_ida = cbs_IIDA.find_solution_IIDA()
                 mem_IIDA = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_IIDA))
-                peak_mem_n_IDA += mem_IIDA[1]
+                peak_mem_IIDA += mem_IIDA[1]
                 tracemalloc.stop()
                 total_time_IIDA += cbs_IIDA.get_time()
                 sum_of_cost_IIDA += cbs_IIDA.get_cost()
+
+                print("***Run fringe***")
+                cbs_fringe = CBSSolver(my_map, starts, goals)
+                tracemalloc.start()
+                paths_fringe = cbs_fringe.find_solution_fringe()
+                mem_fringe = tracemalloc.get_traced_memory()
+                print("Memory used: {}".format(mem_fringe))
+                peak_mem_fringe += mem_fringe[1]
+                tracemalloc.stop()
+                total_time_fringe += cbs_fringe.get_time()
+                sum_of_cost_fringe += cbs_fringe.get_cost()
 
                 print("***Run A Star***")
                 cbs_a_star = CBSSolver(my_map, starts, goals)
@@ -195,30 +210,22 @@ if __name__ == '__main__':
                 raise RuntimeError("Unknown solver!")
 
             # cost = get_sum_of_cost(paths)
-            result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
+            result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
                                                                                 cbs_a_star.get_time(),
+                                                                                cbs_fringe.get_time(),
                                                                                 cbs_LRTA.get_time(),
                                                                                 cbs_tt_ida.get_time(),
                                                                                 cbs_IIDA.get_time(),
                                                                                 mem_a_star[1],
+                                                                                mem_fringe[1],
                                                                                 mem_LRTA[1],
                                                                                 mem_tt_IDA[1],
                                                                                 mem_IIDA[1],
                                                                                 cbs_a_star.get_cost(),
+                                                                                cbs_fringe.get_cost(),
                                                                                 cbs_LRTA.get_cost(),
                                                                                 cbs_tt_ida.get_cost(),
                                                                                 cbs_IIDA.get_cost()))
-            # result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
-            #                                                                   cbs_a_star.get_time(),
-            #                                                                   cbs_a_star.get_expanded_nodes_MAPF(),
-            #                                                                   cbs_a_star.get_generated_nodes_MAPF(),
-            #                                                                   cbs_IIDA.get_time(),
-            #                                                                   cbs_IIDA.get_expanded_nodes_MAPF(),
-            #                                                                   cbs_IIDA.get_generated_nodes_MAPF(),
-            #                                                                   mem_a_star[1],
-            #                                                                   mem_IIDA[1],
-            #                                                                   cbs_a_star.get_cost(),
-            #                                                                   cbs_IIDA.get_cost()))
 
             if not args.batch:
                 print("***Test paths on a simulation***")
@@ -227,31 +234,39 @@ if __name__ == '__main__':
                 animation.show()
 
     print("Total time A*:", total_time_a_star)
-    print("Total memory A^:", peak_mem_a_star)
+    print("Total memory A*:", peak_mem_a_star)
     print("Total cost A*:", sum_of_cost_a_star)
-
+    print("")
+    print("Total time fringe:", total_time_fringe)
+    print("Total memory fringe:", peak_mem_fringe)
+    print("Total cost fringe:", sum_of_cost_fringe)
+    print("")
     print("Total time LRTA:", total_time_LRTA)
     print("Total memory LRTA:", peak_mem_LRTA)
     print("Total cost LRTA:", sum_of_cost_LRTA)
-
+    print("")
     print("Total time transposition table IDA:", total_time_tt_IDA)
     print("Total memory transposition table IDA:", peak_mem_tt_IDA)
     print("Total cost transposition table IDA:", sum_of_cost_tt_IDA)
-
+    print("")
     print("Total time IIDA:", total_time_IIDA)
-    print("Total memory IIDA:", peak_mem_n_IDA)
+    print("Total memory IIDA:", peak_mem_IIDA)
     print("Total cost IIDA:", sum_of_cost_IIDA)
     print("The same cost:", same_cost)
     result_file.write(
-        "{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format("Sum", total_time_a_star,
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format("Sum",
+                                                          total_time_a_star,
+                                                          total_time_fringe,
                                                           total_time_LRTA,
                                                           total_time_tt_IDA,
                                                           total_time_IIDA,
                                                           peak_mem_a_star,
+                                                          peak_mem_fringe,
                                                           peak_mem_LRTA,
                                                           peak_mem_tt_IDA,
-                                                          peak_mem_n_IDA,
+                                                          peak_mem_IIDA,
                                                           sum_of_cost_a_star,
+                                                          sum_of_cost_fringe,
                                                           sum_of_cost_LRTA,
                                                           sum_of_cost_tt_IDA,
                                                           sum_of_cost_IIDA))
