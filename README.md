@@ -10,7 +10,11 @@ Enter the code folder: cd code
     The number in the command can be changed if you want.
 
 2. The test of single agent task:\
-   python run_experiments_single_agent.py --instance "<instance_name>/*" --solver CBS --batch --test
+   python run_experiments_single_agent.py --instance "<file_name>/*" --solver CBS --batch --test\
+   example:\
+   python run_experiments_single_agent.py --instance "maze-32-32-2/*" --solver CBS --batch --test
 
-3. The test of MAPF:\
-   python run_experiments_MAPF.py --instance "<instance_name>/*" --solver CBS --batch --test
+4. The test of MAPF:\
+   python run_experiments_MAPF.py --instance "<file_name>/*" --solver CBS --batch --test\
+   example:\
+   python run_experiments_MAPF.py --instance "maze-32-32-2_5_MAPF/*" --solver CBS --batch --test
