@@ -12,11 +12,11 @@ Enter the code folder: cd code
     python run_experiments_single_agent.py --agent_num 5 --map_num 100 --batch --generate_map --benchmark maze-32-32-2.map --output_file maze-32-32-2
 
 3. The test of single agent task:\
-   python run_experiments_single_agent.py --instance "<file_name>/*" --solver CBS --batch --test\
+   python run_experiments_single_agent.py --instance "<file_name>/\*" --solver CBS --batch --test\
    example:\
-   python run_experiments_single_agent.py --instance "maze-32-32-2/*" --solver CBS --batch --test
+   python run_experiments_single_agent.py --instance "maze-32-32-2/\*" --solver CBS --batch --test
 
 4. The test of MAPF:\
-   python run_experiments_MAPF.py --instance "<file_name>/*" --solver CBS --batch --test\
+   python run_experiments_MAPF.py --instance "<file_name>/\*" --solver CBS --batch --test\
    example:\
-   python run_experiments_MAPF.py --instance "maze-32-32-2_5_MAPF/*" --solver CBS --batch --test
+   python run_experiments_MAPF.py --instance "maze-32-32-2_5_MAPF/\*" --solver CBS --batch --test
