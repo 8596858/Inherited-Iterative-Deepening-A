@@ -1,5 +1,8 @@
-anaconda3
-python = 3.8
+anaconda3\
+python = 3.6
+
+Dependencies:
+matplotlib==3.3.4
 
 Enter the code folder: cd code
 
