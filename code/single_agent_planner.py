@@ -258,5 +258,4 @@ class SingleSolver(object):
         self.sum_of_cost = get_sum_of_cost(node['paths'])
         print("Expanded nodes:  {}".format(self.num_of_expanded))
         print("Generated nodes: {}".format(self.num_of_generated))
-        print("Traversed nodes: {}".format(self.traversed_nodes))
         print()
