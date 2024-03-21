@@ -1,3 +1,6 @@
+anaconda3
+python = 3.8
+
 Enter the code folder: cd code
 
 1. To run the test you should generate a batch of maps:\
