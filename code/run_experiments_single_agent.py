@@ -75,8 +75,6 @@ if __name__ == '__main__':
                         help='The name of the instance file(s)')
     parser.add_argument('--batch', action='store_true', default=False,
                         help='Use batch output instead of animation')
-    parser.add_argument('--solver', type=str, default=SOLVER,
-                        help='The solver to use (one of: {CBS,Independent,Prioritized}), defaults to ' + str(SOLVER))
     parser.add_argument('--size', type=int, default=10,
                         help='The size of the map')
     parser.add_argument('--agent_num', type=int, default=1,
@@ -143,75 +141,70 @@ if __name__ == '__main__':
 
             print("***Import an instance***")
             my_map, starts, goals = import_mapf_instance(file)
-            # print_mapf_instance(my_map, starts, goals)
-            if args.solver == "CBS":
-                # print_mapf_instance(my_map, starts, goals)
-                for i in range(starts.__len__()):
-                    print("{}".format(i) + " {}".format(starts[i]) + " {}".format(goals[i]))
-                print("***Run Test***")
-                index += 1
-                print(index)
+            for i in range(starts.__len__()):
+                print("{}".format(i) + " {}".format(starts[i]) + " {}".format(goals[i]))
+            print("***Run Test***")
+            index += 1
+            print(index)
 
-                print("***Run IIDA***")
-                solver_IIDA = SingleSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_n_ida = solver_IIDA.find_solution_IIDA()
-                mem_IIDA = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_IIDA))
-                peak_mem_IIDA += mem_IIDA[1]
-                tracemalloc.stop()
-                total_time_IIDA += solver_IIDA.get_time()
-                sum_of_cost_IIDA += solver_IIDA.get_cost()
+            print("***Run IIDA***")
+            solver_IIDA = SingleSolver(my_map, starts, goals)
+            tracemalloc.start()
+            paths_n_ida = solver_IIDA.find_solution_IIDA()
+            mem_IIDA = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_IIDA))
+            peak_mem_IIDA += mem_IIDA[1]
+            tracemalloc.stop()
+            total_time_IIDA += solver_IIDA.get_time()
+            sum_of_cost_IIDA += solver_IIDA.get_cost()
 
-                print("***Run fringe***")
-                solver_fringe = SingleSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_fringe = solver_fringe.find_solution_fringe()
-                mem_fringe = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_fringe))
-                peak_mem_fringe += mem_fringe[1]
-                tracemalloc.stop()
-                total_time_fringe += solver_fringe.get_time()
-                sum_of_cost_fringe += solver_fringe.get_cost()
+            print("***Run fringe***")
+            solver_fringe = SingleSolver(my_map, starts, goals)
+            tracemalloc.start()
+            paths_fringe = solver_fringe.find_solution_fringe()
+            mem_fringe = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_fringe))
+            peak_mem_fringe += mem_fringe[1]
+            tracemalloc.stop()
+            total_time_fringe += solver_fringe.get_time()
+            sum_of_cost_fringe += solver_fringe.get_cost()
 
-                print("***Run A Star***")
-                solver_a_star = SingleSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_a_star = solver_a_star.find_solution_a_star()
-                mem_a_star = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_a_star))
-                peak_mem_a_star += mem_a_star[1]
-                tracemalloc.stop()
-                total_time_a_star += solver_a_star.get_time()
-                sum_of_cost_a_star += solver_a_star.get_cost()
+            print("***Run A Star***")
+            solver_a_star = SingleSolver(my_map, starts, goals)
+            tracemalloc.start()
+            paths_a_star = solver_a_star.find_solution_a_star()
+            mem_a_star = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_a_star))
+            peak_mem_a_star += mem_a_star[1]
+            tracemalloc.stop()
+            total_time_a_star += solver_a_star.get_time()
+            sum_of_cost_a_star += solver_a_star.get_cost()
 
-                print("***Run LRTA***")
-                solver_LRTA = SingleSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_LRTA = solver_LRTA.find_solution_LRTA_star()
-                mem_LRTA = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_LRTA))
-                peak_mem_LRTA += mem_LRTA[1]
-                tracemalloc.stop()
-                total_time_LRTA += solver_LRTA.get_time()
-                sum_of_cost_LRTA += solver_LRTA.get_cost()
+            print("***Run LRTA***")
+            solver_LRTA = SingleSolver(my_map, starts, goals)
+            tracemalloc.start()
+            paths_LRTA = solver_LRTA.find_solution_LRTA_star()
+            mem_LRTA = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_LRTA))
+            peak_mem_LRTA += mem_LRTA[1]
+            tracemalloc.stop()
+            total_time_LRTA += solver_LRTA.get_time()
+            sum_of_cost_LRTA += solver_LRTA.get_cost()
 
-                print("***Run transposition table IDA***")
-                solver_tt_ida = SingleSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_tt_ida = solver_tt_ida.find_solution_tt_IDA()
-                mem_tt_IDA = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_tt_IDA))
-                peak_mem_tt_IDA += mem_tt_IDA[1]
-                tracemalloc.stop()
-                total_time_tt_IDA += solver_tt_ida.get_time()
-                sum_of_cost_tt_IDA += solver_tt_ida.get_cost()
+            print("***Run transposition table IDA***")
+            solver_tt_ida = SingleSolver(my_map, starts, goals)
+            tracemalloc.start()
+            paths_tt_ida = solver_tt_ida.find_solution_tt_IDA()
+            mem_tt_IDA = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_tt_IDA))
+            peak_mem_tt_IDA += mem_tt_IDA[1]
+            tracemalloc.stop()
+            total_time_tt_IDA += solver_tt_ida.get_time()
+            sum_of_cost_tt_IDA += solver_tt_ida.get_cost()
 
-                if solver_a_star.get_cost() == solver_IIDA.get_cost():
-                    same_cost += 1
-                print()
-            else:
-                raise RuntimeError("Unknown solver!")
+            if solver_a_star.get_cost() == solver_IIDA.get_cost():
+                same_cost += 1
+            print()
 
             # cost = get_sum_of_cost(paths)
             result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,

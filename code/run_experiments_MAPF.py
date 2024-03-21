@@ -75,8 +75,6 @@ if __name__ == '__main__':
                         help='The name of the instance file(s)')
     parser.add_argument('--batch', action='store_true', default=False,
                         help='Use batch output instead of animation')
-    parser.add_argument('--solver', type=str, default=SOLVER,
-                        help='The solver to use (one of: {CBS,Independent,Prioritized}), defaults to ' + str(SOLVER))
     parser.add_argument('--size', type=int, default=10,
                         help='The size of the map')
     parser.add_argument('--agent_num', type=int, default=1,
@@ -85,6 +83,8 @@ if __name__ == '__main__':
                         help='The num of obstacles')
     parser.add_argument('--map_num', type=int, default=1,
                         help='The num of the map')
+    parser.add_argument('--time_limit', type=int, default=150,
+                        help='The time limit of the MAPF task')
     parser.add_argument('--generate_map', action='store_true', default=False,
                         help='Generate map')
     parser.add_argument('--benchmark', type=str, default=None,
@@ -131,46 +131,41 @@ if __name__ == '__main__':
 
             print("***Import an instance***")
             my_map, starts, goals = import_mapf_instance(file)
-            # print_mapf_instance(my_map, starts, goals)
-            if args.solver == "CBS":
-                # print_mapf_instance(my_map, starts, goals)
-                for i in range(starts.__len__()):
-                    print("{}".format(i) + " {}".format(starts[i]) + " {}".format(goals[i]))
-                print("***Run CBS***")
-                index += 1
-                print(index)
+            for i in range(starts.__len__()):
+                print("{}".format(i) + " {}".format(starts[i]) + " {}".format(goals[i]))
+            print("***Run CBS***")
+            index += 1
+            print(index)
 
-                print("***Run IIDA***")
-                cbs_IIDA = CBSSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_n_ida = cbs_IIDA.find_solution_IIDA_MAPF()
-                mem_IIDA = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_IIDA))
-                peak_mem_n_IDA += mem_IIDA[1]
-                tracemalloc.stop()
-                total_expanded_IIDA += cbs_IIDA.get_expanded_nodes_MAPF()
-                total_generated_IIDA += cbs_IIDA.get_generated_nodes_MAPF()
-                total_time_IIDA += cbs_IIDA.get_time()
-                sum_of_cost_IIDA += cbs_IIDA.get_cost()
+            print("***Run IIDA***")
+            cbs_IIDA = CBSSolver(my_map, starts, goals, args.time_limit)
+            tracemalloc.start()
+            paths_n_ida = cbs_IIDA.find_solution_IIDA_MAPF()
+            mem_IIDA = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_IIDA))
+            peak_mem_n_IDA += mem_IIDA[1]
+            tracemalloc.stop()
+            total_expanded_IIDA += cbs_IIDA.get_expanded_nodes_MAPF()
+            total_generated_IIDA += cbs_IIDA.get_generated_nodes_MAPF()
+            total_time_IIDA += cbs_IIDA.get_time()
+            sum_of_cost_IIDA += cbs_IIDA.get_cost()
 
-                print("***Run A Star***")
-                cbs_a_star = CBSSolver(my_map, starts, goals)
-                tracemalloc.start()
-                paths_a_star = cbs_a_star.find_solution_a_star_MAPF()
-                mem_a_star = tracemalloc.get_traced_memory()
-                print("Memory used: {}".format(mem_a_star))
-                peak_mem_a_star += mem_a_star[1]
-                tracemalloc.stop()
-                total_expanded_a_star += cbs_a_star.get_expanded_nodes_MAPF()
-                total_generated_a_star += cbs_a_star.get_generated_nodes_MAPF()
-                total_time_a_star += cbs_a_star.get_time()
-                sum_of_cost_a_star += cbs_a_star.get_cost()
+            print("***Run A Star***")
+            cbs_a_star = CBSSolver(my_map, starts, goals, args.time_limit)
+            tracemalloc.start()
+            paths_a_star = cbs_a_star.find_solution_a_star_MAPF()
+            mem_a_star = tracemalloc.get_traced_memory()
+            print("Memory used: {}".format(mem_a_star))
+            peak_mem_a_star += mem_a_star[1]
+            tracemalloc.stop()
+            total_expanded_a_star += cbs_a_star.get_expanded_nodes_MAPF()
+            total_generated_a_star += cbs_a_star.get_generated_nodes_MAPF()
+            total_time_a_star += cbs_a_star.get_time()
+            sum_of_cost_a_star += cbs_a_star.get_cost()
 
-                if cbs_a_star.get_cost() == cbs_IIDA.get_cost():
-                    same_cost += 1
-                print()
-            else:
-                raise RuntimeError("Unknown solver!")
+            if cbs_a_star.get_cost() == cbs_IIDA.get_cost():
+                same_cost += 1
+            print()
 
             result_file.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
                                                                               cbs_a_star.get_time(),

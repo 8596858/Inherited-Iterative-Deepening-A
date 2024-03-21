@@ -112,7 +112,7 @@ def standard_splitting(collision):
 class CBSSolver(object):
     """The high-level search of CBS."""
 
-    def __init__(self, my_map, starts, goals):
+    def __init__(self, my_map, starts, goals, time_limit):
         """my_map   - list of lists specifying obstacle positions
         starts      - [(x1, y1), (x2, y2), ...] list of start locations
         goals       - [(x1, y1), (x2, y2), ...] list of goal locations
@@ -120,6 +120,7 @@ class CBSSolver(object):
 
         self.start_time = None
         self.end_time = None
+        self.time_limit = time_limit
         self.my_map = my_map
         self.starts = starts
         self.goals = goals
@@ -172,7 +173,7 @@ class CBSSolver(object):
         self.push_node(root)
         while self.open_list:
             time = timer.time()
-            if time - self.start_time > 1200:
+            if time - self.start_time > self.time_limit:
                 self.end_time = timer.time()
                 return []
             P = self.pop_node()
@@ -228,7 +229,7 @@ class CBSSolver(object):
         self.push_node(root)
         while self.open_list:
             time = timer.time()
-            if time - self.start_time > 1200:
+            if time - self.start_time > self.time_limit:
                 self.end_time = timer.time()
                 return []
             P = self.pop_node()
