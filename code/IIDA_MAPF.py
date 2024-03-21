@@ -9,8 +9,19 @@ def build_constraint_table(constraints, agent):
 
     # task 4
     for constraint in constraints:
+        if 'positive' not in constraint:
+            constraint['positive'] = False
         if constraint['agent'] == agent:
             constraint_table.append(constraint)
+        if constraint['agent'] != agent and constraint['positive'] == True:
+            if len(constraint['loc']) == 2:
+                con = {'agent': agent, 'loc': [constraint['loc'][1], constraint['loc'][0]],
+                       'timestep': constraint['timestep'], 'positive': False}
+                constraint_table.append(con)
+            else:
+                con = {'agent': agent, 'loc': [constraint['loc'][0]],
+                       'timestep': constraint['timestep'], 'positive': False}
+                constraint_table.append(con)
 
     return constraint_table
     pass
@@ -27,15 +38,25 @@ def get_path(goal_node):
 
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
+
     # task 4
     for constraint in constraint_table:
-        if len(constraint['loc']) == 1:
-            if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
-                return 1
+        if constraint['positive']:
+            if len(constraint['loc']) == 1:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
+                    return 1
+            else:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
+                        constraint['loc'][0]:
+                    return 1
         else:
-            if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
-                    constraint['loc'][0]:
-                return 1
+            if len(constraint['loc']) == 1:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
+                    return 2
+            else:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
+                        constraint['loc'][0]:
+                    return 2
     return 0
 
     pass
@@ -55,8 +76,6 @@ def IIDA_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     set_list = dict()
     earliest_goal_timestep = 0
-    expended_nodes = 0
-    generated_nodes = [0]
 
     # make sure h_values has start_loc
     flag = False
@@ -77,7 +96,6 @@ def IIDA_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     bound = max(h_values[start_loc], earliest_goal_timestep)
     set_list[bound] = [root]
-    expended_nodes += 1
     # result = root
     while True:
         # print(return_set['path'])
@@ -93,17 +111,17 @@ def IIDA_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
         if bound == float("inf"):
             return None, 0, 0
         root = set_list[bound].pop()
-        generated_nodes[0] += 1
         # print(return_set['path'])
         root = DeepSearch_MAPF(my_map, bound, h_values, set_list,
-                          constraint_table, earliest_goal_timestep, root, closed_list, generated_nodes)
+                          constraint_table, earliest_goal_timestep, root, closed_list)
         if root['loc'] == goal_loc:
             return_flag = 0
             for constraint in constraints:
                 if constraint['timestep'] >= root['timestep'] and constraint['loc'] == [goal_loc]:
-                    return_flag = 1
+                    if not constraint['positive']:
+                        return_flag = 1
             if return_flag == 0:
-                return get_path(root), expended_nodes, generated_nodes[0]
+                return get_path(root)
                 # if result['loc'] != goal_loc:
                 #     result = root
                 # else:
@@ -111,16 +129,48 @@ def IIDA_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
                 #         result = root
 
 
-def DeepSearch_MAPF(my_map, bound, h_values, set_list, constraints, earliest_goal_timestep, node, closed_list, generated_nodes):
+def DeepSearch_MAPF(my_map, bound, h_values, set_list, constraints, earliest_goal_timestep, node, closed_list):
     g = node['g_val']
     curr = node['loc']
     open_list = []
     # if h_values[curr] == 0:
     #     return node
+    temp = -1
     for dir in range(5):
-        if dir < 4:
+        child_loc = move(curr, dir)
+        if is_constrained(curr, child_loc, node['timestep'] + 1, constraints) == 1:
+            temp = dir
+            child = {'loc': child_loc,
+                     'g_val': node['g_val'] + 1,
+                     'h_val': h_values[child_loc],
+                     'parent': node,
+                     'timestep': node['timestep'] + 1}
+            f = child['g_val'] + child['h_val']
+            if f <= bound:
+                if (child['loc'], child['timestep']) not in closed_list or closed_list[
+                    (child['loc'], child['timestep'])] > f:
+                    closed_list[(child['loc'], child['timestep'])] = f
+                    new_node = DeepSearch_MAPF(my_map, bound, h_values, set_list, constraints,
+                                               earliest_goal_timestep,
+                                               child, closed_list)
+                    if new_node['h_val'] == 0:
+                        return new_node
+            else:
+                if (child['loc'], child['timestep']) not in closed_list or closed_list[
+                    (child['loc'], child['timestep'])] > f:
+                    if (child['loc'], child['timestep']) in closed_list and closed_list[
+                        (child['loc'], child['timestep'])] > f:
+                        set_list[closed_list[(child['loc'], child['timestep'])]].remove(child.copy())
+                    closed_list[(child['loc'], child['timestep'])] = f
+                    if f in set_list:
+                        set_list[f].append(child.copy())
+                    else:
+                        set_list[f] = [child.copy()]
+
+    for dir in range(5):
+        if dir < 4 and dir != temp:
             child_loc = move(curr, dir)
-        else:
+        elif dir == 4 and dir != temp:
             child_loc = curr
         if child_loc[0] <= -1 or child_loc[1] <= -1:
             continue
@@ -141,7 +191,7 @@ def DeepSearch_MAPF(my_map, bound, h_values, set_list, constraints, earliest_goa
                     closed_list[(child['loc'], child['timestep'])] = f
                     new_node = DeepSearch_MAPF(my_map, bound, h_values, set_list, constraints,
                                           earliest_goal_timestep,
-                                          child, closed_list, generated_nodes)
+                                          child, closed_list)
                     if new_node['h_val'] == 0:
                         return new_node
             else:
@@ -151,8 +201,6 @@ def DeepSearch_MAPF(my_map, bound, h_values, set_list, constraints, earliest_goa
                     closed_list[(child['loc'], child['timestep'])] = f
                     if f in set_list:
                         set_list[f].append(child.copy())
-                        generated_nodes[0] += 1
                     else:
                         set_list[f] = [child.copy()]
-                        generated_nodes[0] += 1
     return node

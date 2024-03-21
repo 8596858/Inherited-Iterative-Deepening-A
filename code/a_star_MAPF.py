@@ -13,8 +13,19 @@ def build_constraint_table(constraints, agent):
 
     # task 4
     for constraint in constraints:
+        if 'positive' not in constraint:
+            constraint['positive'] = False
         if constraint['agent'] == agent:
             constraint_table.append(constraint)
+        if constraint['agent'] != agent and constraint['positive'] == True:
+            if len(constraint['loc']) == 2:
+                con = {'agent': agent, 'loc': [constraint['loc'][1], constraint['loc'][0]],
+                       'timestep': constraint['timestep'], 'positive': False}
+                constraint_table.append(con)
+            else:
+                con = {'agent': agent, 'loc': [constraint['loc'][0]],
+                       'timestep': constraint['timestep'], 'positive': False}
+                constraint_table.append(con)
 
     return constraint_table
     pass
@@ -34,13 +45,22 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
 
     # task 4
     for constraint in constraint_table:
-        if len(constraint['loc']) == 1:
-            if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
-                return 1
+        if constraint['positive']:
+            if len(constraint['loc']) == 1:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
+                    return 1
+            else:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
+                        constraint['loc'][0]:
+                    return 1
         else:
-            if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
-                    constraint['loc'][0]:
-                return 1
+            if len(constraint['loc']) == 1:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][0]:
+                    return 2
+            else:
+                if next_time == constraint['timestep'] and next_loc == constraint['loc'][1] and curr_loc == \
+                        constraint['loc'][0]:
+                    return 2
     return 0
 
     pass
@@ -63,27 +83,46 @@ def compare_nodes(n1, n2):
 def a_star_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
     open_list = []
     closed_list = dict()
-    expended_nodes = 0
-    generated_nodes = 0
 
     h_value = h_values[start_loc]
     constraint_table = build_constraint_table(constraints, agent)
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': 0}
     push_node(open_list, root)
-    generated_nodes += 1
     closed_list[(root['loc']), (root['timestep'])] = root
     while len(open_list) > 0:
         curr = pop_node(open_list)
-        expended_nodes += 1
 
         # task 4
         if curr['loc'] == goal_loc:
             return_flag = 0
             for constraint in constraint_table:
                 if constraint['timestep'] > curr['timestep'] and constraint['loc'] == [goal_loc]:
-                    return_flag = 1
+                    if not constraint['positive']:
+                        return_flag = 1
             if return_flag == 0:
-                return get_path(curr), expended_nodes, generated_nodes
+                return get_path(curr)
+
+        temp = 0
+        for dir in range(5):
+            child_loc = move(curr['loc'], dir)
+            if is_constrained(curr['loc'], child_loc, curr['timestep'] + 1, constraint_table) == 1:
+                child = {'loc': child_loc,
+                         'g_val': curr['g_val'] + 1,
+                         'h_val': h_values[child_loc],
+                         'parent': curr,
+                         'timestep': curr['timestep'] + 1}
+                if (child['loc'], (child['timestep'])) in closed_list:
+                    existing_node = closed_list[(child['loc']), (child['timestep'])]
+                    if compare_nodes(child, existing_node):
+                        closed_list[(child['loc']), (child['timestep'])] = child
+                        push_node(open_list, child)
+                else:
+                    closed_list[(child['loc']), (child['timestep'])] = child
+                    push_node(open_list, child)
+                temp = 1
+                break
+        if temp == 1:
+            continue
 
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
@@ -99,6 +138,7 @@ def a_star_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
                 continue
 
             if is_constrained(curr['loc'], child_loc, curr['timestep'] + 1, constraint_table) == 0:
+
                 child = {'loc': child_loc,
                         'g_val': curr['g_val'] + 1,
                         'h_val': h_values[child_loc],
@@ -109,10 +149,8 @@ def a_star_MAPF(my_map, start_loc, goal_loc, h_values, agent, constraints):
                     if compare_nodes(child, existing_node):
                         closed_list[(child['loc']), (child['timestep'])] = child
                         push_node(open_list, child)
-                        generated_nodes += 1
                 else:
                     closed_list[(child['loc']), (child['timestep'])] = child
                     push_node(open_list, child)
-                    generated_nodes += 1
 
-    return None, 0, 0  # Failed to find solutions
+    return None  # Failed to find solutions

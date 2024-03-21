@@ -1,16 +1,48 @@
 import time as timer
 import heapq
 import random
-from a_star import a_star, get_location, get_sum_of_cost
-from heuristic import compute_heuristics
-from fringe import fringe
-from IDA_agent_planner import ID_a_star
-from IDA_table_revision import tt_IDA
-from IIDA import IIDA
-from learning_real_time_a_star import LRTA_star
+from a_star import get_location, get_sum_of_cost
 from a_star_MAPF import a_star_MAPF
 from IIDA_MAPF import IIDA_MAPF
 
+def move(loc, dir):
+    # task 1.1 Add the node that staying at original location
+    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (0, 0)]
+    return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
+
+def compute_heuristics(my_map, goal):
+    # Use Dijkstra to build a shortest-path tree rooted at the goal location
+    open_list = []
+    closed_list = dict()
+    root = {'loc': goal, 'cost': 0}
+    heapq.heappush(open_list, (root['cost'], goal, root))
+    closed_list[goal] = root
+    while len(open_list) > 0:
+        (cost, loc, curr) = heapq.heappop(open_list)
+        for dir in range(4):
+            child_loc = move(loc, dir)
+            child_cost = cost + 1
+            if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
+                    or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
+                continue
+            if my_map[child_loc[0]][child_loc[1]]:
+                continue
+            child = {'loc': child_loc, 'cost': child_cost}
+            if child_loc in closed_list:
+                existing_node = closed_list[child_loc]
+                if existing_node['cost'] > child_cost:
+                    closed_list[child_loc] = child
+                    # open_list.delete((existing_node['cost'], existing_node['loc'], existing_node))
+                    heapq.heappush(open_list, (child_cost, child_loc, child))
+            else:
+                closed_list[child_loc] = child
+                heapq.heappush(open_list, (child_cost, child_loc, child))
+
+    # build the heuristics table
+    h_values = dict()
+    for loc, node in closed_list.items():
+        h_values[loc] = node['cost']
+    return h_values
 
 def detect_collision(path1, path2):
     ##############################
@@ -202,52 +234,6 @@ class CBSSolver(object):
         self.num_of_expanded += 1
         return node
 
-    def find_solution_a_star(self, disjoint=True):
-        """ Finds paths for all agents from their start locations to their goal locations
-
-        disjoint    - use disjoint splitting or not
-        """
-
-        self.start_time = timer.time()
-
-        root = {'cost': 0,
-                'constraints': [],
-                'paths': [],
-                'collisions': []}
-        for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
-            if path is None:
-                raise BaseException('No solutions')
-            root['paths'].append(path)
-
-        root['cost'] = get_sum_of_cost(root['paths'])
-        self.end_time = timer.time()
-        self.print_results(root)
-        return root['paths']
-
-    def find_solution_fringe(self, disjoint=True):
-        """ Finds paths for all agents from their start locations to their goal locations
-
-        disjoint    - use disjoint splitting or not
-        """
-
-        self.start_time = timer.time()
-
-        root = {'cost': 0,
-                'constraints': [],
-                'paths': [],
-                'collisions': []}
-        for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = fringe(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
-            if path is None:
-                raise BaseException('No solutions')
-            root['paths'].append(path)
-
-        root['cost'] = get_sum_of_cost(root['paths'])
-        self.end_time = timer.time()
-        self.print_results(root)
-        return root['paths']
-
     def find_solution_a_star_MAPF(self, disjoint=True):
         """ Finds paths for all agents from their start locations to their goal locations
 
@@ -261,10 +247,8 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path, temp1, temp2 = a_star_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
+            path = a_star_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, root['constraints'])
-            self.expanded_nodes += temp1
-            self.generated_nodes += temp2
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -274,7 +258,7 @@ class CBSSolver(object):
         self.push_node(root)
         while self.open_list:
             time = timer.time()
-            if time - self.start_time > 150:
+            if time - self.start_time > 1200:
                 self.end_time = timer.time()
                 return []
             P = self.pop_node()
@@ -283,7 +267,7 @@ class CBSSolver(object):
                 break
             collision = P['collisions'].pop()
             # task 3.3
-            constraints = standard_splitting(collision)
+            constraints = disjoint_splitting(collision)
             for constraint in constraints:
                 Q = {'cost': 0, 'constraints': [constraint], 'paths': [], 'collisions': None}
                 for c in P['constraints']:
@@ -292,9 +276,7 @@ class CBSSolver(object):
                 for p in P['paths']:
                     Q['paths'].append(p)
                 a = constraint['agent']
-                path, temp1, temp2 = a_star_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-                self.expanded_nodes += temp1
-                self.generated_nodes += temp2
+                path = a_star_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
                 if path is not None:
                     Q['paths'][a] = path
                     Q['collisions'] = detect_collisions(Q['paths'])
@@ -305,100 +287,6 @@ class CBSSolver(object):
 
         # for p in root['paths']:
         #     print(p)
-        self.end_time = timer.time()
-        self.print_results(root)
-        return root['paths']
-
-    def find_solution_LRTA_star(self, disjoint=True):
-        """ Finds paths for all agents from their start locations to their goal locations
-
-        disjoint    - use disjoint splitting or not
-        """
-
-        self.start_time = timer.time()
-
-        root = {'cost': 0,
-                'constraints': [],
-                'paths': [],
-                'collisions': []}
-        for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = LRTA_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
-            if path is None:
-                raise BaseException('No solutions')
-            root['paths'].append(path)
-
-        root['cost'] = get_sum_of_cost(root['paths'])
-        self.end_time = timer.time()
-        self.print_results(root)
-        return root['paths']
-
-
-    def find_solution_IDA(self, disjoint=True):
-        """ Finds paths for all agents from their start locations to their goal locations
-
-        disjoint    - use disjoint splitting or not
-        """
-
-        self.start_time = timer.time()
-
-        root = {'cost': 0,
-                'constraints': [],
-                'paths': [],
-                'collisions': []}
-        for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = ID_a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
-            if path is None:
-                raise BaseException('No solutions')
-            root['paths'].append(path)
-
-        root['cost'] = get_sum_of_cost(root['paths'])
-        self.end_time = timer.time()
-        self.print_results(root)
-        return root['paths']
-
-    #
-    def find_solution_tt_IDA(self, disjoint=True):
-        """ Finds paths for all agents from their start locations to their goal locations
-
-        disjoint    - use disjoint splitting or not
-        """
-
-        self.start_time = timer.time()
-
-        root = {'cost': 0,
-                'constraints': [],
-                'paths': [],
-                'collisions': []}
-        for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = tt_IDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
-            if path is None:
-                raise BaseException('No solutions')
-            root['paths'].append(path)
-
-        root['cost'] = get_sum_of_cost(root['paths'])
-        self.end_time = timer.time()
-        self.print_results(root)
-        return root['paths']
-
-    def find_solution_IIDA(self, disjoint=True):
-        """ Finds paths for all agents from their start locations to their goal locations
-
-        disjoint    - use disjoint splitting or not
-        """
-
-        self.start_time = timer.time()
-
-        root = {'cost': 0,
-                'constraints': [],
-                'paths': [],
-                'collisions': []}
-        for i in range(self.num_of_agents):  # Find initial path for each agent
-            path = IIDA(self.my_map, self.starts[i], self.goals[i], self.heuristics[i])
-            if path is None:
-                raise BaseException('No solutions')
-            root['paths'].append(path)
-
-        root['cost'] = get_sum_of_cost(root['paths'])
         self.end_time = timer.time()
         self.print_results(root)
         return root['paths']
@@ -417,9 +305,7 @@ class CBSSolver(object):
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
-            path, temp1, temp2 = IIDA_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
-            self.expanded_nodes += temp1
-            self.generated_nodes += temp2
+            path = IIDA_MAPF(self.my_map, self.starts[i], self.goals[i], self.heuristics[i], i, root['constraints'])
             if path is None:
                 raise BaseException('No solutions')
             root['paths'].append(path)
@@ -429,7 +315,7 @@ class CBSSolver(object):
         self.push_node(root)
         while self.open_list:
             time = timer.time()
-            if time - self.start_time > 150:
+            if time - self.start_time > 1200:
                 self.end_time = timer.time()
                 return []
             P = self.pop_node()
@@ -447,9 +333,7 @@ class CBSSolver(object):
                 for p in P['paths']:
                     Q['paths'].append(p)
                 a = constraint['agent']
-                path, temp1, temp2 = IIDA_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
-                self.expanded_nodes += temp1
-                self.generated_nodes += temp2
+                path = IIDA_MAPF(self.my_map, self.starts[a], self.goals[a], self.heuristics[a], a, Q['constraints'])
                 if path is not None:
                     Q['paths'][a] = path
                     Q['collisions'] = detect_collisions(Q['paths'])
@@ -482,19 +366,11 @@ class CBSSolver(object):
 
     def print_results(self, node):
         print("\n Found a solution! \n")
-        f1 = open("time.txt", 'a')
-        f3 = open("expand.txt", 'a')
         CPU_time = self.end_time - self.start_time
         print("CPU time (s):    {:.2f}".format(CPU_time))
-        f1.writelines(CPU_time.__str__())
-        f1.write('\n')
         print("Sum of costs:    {}".format(get_sum_of_cost(node['paths'])))
         self.sum_of_cost = get_sum_of_cost(node['paths'])
         print("Expanded nodes:  {}".format(self.num_of_expanded))
-        f3.writelines(self.expanded_nodes.__str__())
-        f3.write('\n')
         print("Generated nodes: {}".format(self.num_of_generated))
         print("Traversed nodes: {}".format(self.traversed_nodes))
         print()
-        f1.close()
-        f3.close()

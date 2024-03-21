@@ -10,7 +10,7 @@ def move(loc, dir):
     return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
 
 
-def map_generator(size, agent_num, obs_rate, num):
+def map_generator(size, agent_num, obs_rate, num, output_file):
     maps = []
     obs_num = math.ceil(size * size * obs_rate / 100)
     for i in range(num):
@@ -78,7 +78,7 @@ def map_generator(size, agent_num, obs_rate, num):
             if flag is True:
                 map_dic = {"map": my_map, "start": start, "end": end}
                 maps.append(map_dic)
-                f = open("map/" + str(i) + ".txt", "w")
+                f = open(output_file + "/" + str(i) + ".txt", "w")
                 f.write(str(size) + " " + str(size) + "\n")
                 for x in range(size):
                     for y in range(size):
@@ -98,17 +98,20 @@ def map_generator(size, agent_num, obs_rate, num):
     return maps
 
 
-def map_generator_ben(filename, agent_num, num):
+def map_generator_ben(filename, agent_num, num, output_file):
     m = Path(filename)
     if not m.is_file():
         raise BaseException(filename + " does not exist.")
     m = open(filename, 'r')
-    # first line: #rows #columns
+    m.readline()
     line = m.readline()
-    rows, columns = [int(x) for x in line.split(' ')]
+    _, rows = [x for x in line.split(' ')]
     rows = int(rows)
+    line = m.readline()
+    _, columns = [x for x in line.split(' ')]
     columns = int(columns)
     # print("{} {}".format(rows, columns))
+    m.readline()
     maps = []
     my_map = []
     for r in range(rows):
@@ -149,7 +152,7 @@ def map_generator_ben(filename, agent_num, num):
             if flag is True:
                 map_dic = {"map": my_map, "start": start, "end": end}
                 maps.append(map_dic)
-                f = open("map/" + str(i) + ".txt", "w")
+                f = open(output_file + "/" + str(i) + ".txt", "w")
                 f.write(str(rows) + " " + str(columns) + "\n")
                 for x in range(rows):
                     for y in range(columns):

@@ -3,7 +3,7 @@ import argparse
 import tracemalloc
 import glob
 from pathlib import Path
-from cbs import CBSSolver
+from single_agent_planner import SingleSolver
 from map_generator import map_generator, map_generator_ben
 from visualize import Animation
 
@@ -89,6 +89,8 @@ if __name__ == '__main__':
                         help='Generate map')
     parser.add_argument('--benchmark', type=str, default=None,
                         help='The name of the benchmark file(s)')
+    parser.add_argument('--output_file', type=str, default='map',
+                        help='The name of map file')
     parser.add_argument('--self', action='store_true', default=False,
                         help='Generate map')
     parser.add_argument('--test', action='store_true', default=False,
@@ -127,12 +129,14 @@ if __name__ == '__main__':
             agent_num = args.agent_num
             obs_rate = args.obs_rate
             num = args.map_num
-            maps = map_generator(size, agent_num, obs_rate, num)
+            output = args.output_file
+            maps = map_generator(size, agent_num, obs_rate, num, output)
         else:
             agent_num = args.agent_num
             num = args.map_num
             filename = args.benchmark
-            maps = map_generator_ben(filename, agent_num, num)
+            output = args.output_file
+            maps = map_generator_ben(filename, agent_num, num, output)
     if args.test:
         index = 0
         for file in sorted(glob.glob(args.instance)):
@@ -144,66 +148,66 @@ if __name__ == '__main__':
                 # print_mapf_instance(my_map, starts, goals)
                 for i in range(starts.__len__()):
                     print("{}".format(i) + " {}".format(starts[i]) + " {}".format(goals[i]))
-                print("***Run CBS***")
+                print("***Run Test***")
                 index += 1
                 print(index)
 
                 print("***Run IIDA***")
-                cbs_IIDA = CBSSolver(my_map, starts, goals)
+                solver_IIDA = SingleSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_n_ida = cbs_IIDA.find_solution_IIDA()
+                paths_n_ida = solver_IIDA.find_solution_IIDA()
                 mem_IIDA = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_IIDA))
                 peak_mem_IIDA += mem_IIDA[1]
                 tracemalloc.stop()
-                total_time_IIDA += cbs_IIDA.get_time()
-                sum_of_cost_IIDA += cbs_IIDA.get_cost()
+                total_time_IIDA += solver_IIDA.get_time()
+                sum_of_cost_IIDA += solver_IIDA.get_cost()
 
                 print("***Run fringe***")
-                cbs_fringe = CBSSolver(my_map, starts, goals)
+                solver_fringe = SingleSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_fringe = cbs_fringe.find_solution_fringe()
+                paths_fringe = solver_fringe.find_solution_fringe()
                 mem_fringe = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_fringe))
                 peak_mem_fringe += mem_fringe[1]
                 tracemalloc.stop()
-                total_time_fringe += cbs_fringe.get_time()
-                sum_of_cost_fringe += cbs_fringe.get_cost()
+                total_time_fringe += solver_fringe.get_time()
+                sum_of_cost_fringe += solver_fringe.get_cost()
 
                 print("***Run A Star***")
-                cbs_a_star = CBSSolver(my_map, starts, goals)
+                solver_a_star = SingleSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_a_star = cbs_a_star.find_solution_a_star()
+                paths_a_star = solver_a_star.find_solution_a_star()
                 mem_a_star = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_a_star))
                 peak_mem_a_star += mem_a_star[1]
                 tracemalloc.stop()
-                total_time_a_star += cbs_a_star.get_time()
-                sum_of_cost_a_star += cbs_a_star.get_cost()
+                total_time_a_star += solver_a_star.get_time()
+                sum_of_cost_a_star += solver_a_star.get_cost()
 
                 print("***Run LRTA***")
-                cbs_LRTA = CBSSolver(my_map, starts, goals)
+                solver_LRTA = SingleSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_LRTA = cbs_LRTA.find_solution_LRTA_star()
+                paths_LRTA = solver_LRTA.find_solution_LRTA_star()
                 mem_LRTA = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_LRTA))
                 peak_mem_LRTA += mem_LRTA[1]
                 tracemalloc.stop()
-                total_time_LRTA += cbs_LRTA.get_time()
-                sum_of_cost_LRTA += cbs_LRTA.get_cost()
+                total_time_LRTA += solver_LRTA.get_time()
+                sum_of_cost_LRTA += solver_LRTA.get_cost()
 
                 print("***Run transposition table IDA***")
-                cbs_tt_ida = CBSSolver(my_map, starts, goals)
+                solver_tt_ida = SingleSolver(my_map, starts, goals)
                 tracemalloc.start()
-                paths_tt_ida = cbs_tt_ida.find_solution_tt_IDA()
+                paths_tt_ida = solver_tt_ida.find_solution_tt_IDA()
                 mem_tt_IDA = tracemalloc.get_traced_memory()
                 print("Memory used: {}".format(mem_tt_IDA))
                 peak_mem_tt_IDA += mem_tt_IDA[1]
                 tracemalloc.stop()
-                total_time_tt_IDA += cbs_tt_ida.get_time()
-                sum_of_cost_tt_IDA += cbs_tt_ida.get_cost()
+                total_time_tt_IDA += solver_tt_ida.get_time()
+                sum_of_cost_tt_IDA += solver_tt_ida.get_cost()
 
-                if cbs_a_star.get_cost() == cbs_IIDA.get_cost():
+                if solver_a_star.get_cost() == solver_IIDA.get_cost():
                     same_cost += 1
                 print()
             else:
@@ -211,21 +215,21 @@ if __name__ == '__main__':
 
             # cost = get_sum_of_cost(paths)
             result_file.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(file,
-                                                                                cbs_a_star.get_time(),
-                                                                                cbs_fringe.get_time(),
-                                                                                cbs_LRTA.get_time(),
-                                                                                cbs_tt_ida.get_time(),
-                                                                                cbs_IIDA.get_time(),
-                                                                                mem_a_star[1],
-                                                                                mem_fringe[1],
-                                                                                mem_LRTA[1],
-                                                                                mem_tt_IDA[1],
-                                                                                mem_IIDA[1],
-                                                                                cbs_a_star.get_cost(),
-                                                                                cbs_fringe.get_cost(),
-                                                                                cbs_LRTA.get_cost(),
-                                                                                cbs_tt_ida.get_cost(),
-                                                                                cbs_IIDA.get_cost()))
+                                                                                         solver_a_star.get_time(),
+                                                                                         solver_fringe.get_time(),
+                                                                                         solver_LRTA.get_time(),
+                                                                                         solver_tt_ida.get_time(),
+                                                                                         solver_IIDA.get_time(),
+                                                                                         mem_a_star[1],
+                                                                                         mem_fringe[1],
+                                                                                         mem_LRTA[1],
+                                                                                         mem_tt_IDA[1],
+                                                                                         mem_IIDA[1],
+                                                                                         solver_a_star.get_cost(),
+                                                                                         solver_fringe.get_cost(),
+                                                                                         solver_LRTA.get_cost(),
+                                                                                         solver_tt_ida.get_cost(),
+                                                                                         solver_IIDA.get_cost()))
 
             if not args.batch:
                 print("***Test paths on a simulation***")

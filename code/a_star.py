@@ -79,20 +79,16 @@ def a_star(my_map, start_loc, goal_loc, h_values):
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
 
+            child = {'loc': child_loc,
+                     'g_val': curr['g_val'] + 1,
+                     'h_val': h_values[child_loc],
+                     'parent': curr}
+
             if child_loc in closed_list:
-                existing_node = closed_list[child_loc]
                 if curr['g_val'] + 1 + h_values[child_loc] < closed_list[child_loc]:
-                    child = {'loc': child_loc,
-                             'g_val': curr['g_val'] + 1,
-                             'h_val': h_values[child_loc],
-                             'parent': curr}
                     closed_list[child['loc']] = child['g_val'] + child['h_val']
                     push_node(open_list, child)
             else:
-                child = {'loc': child_loc,
-                         'g_val': curr['g_val'] + 1,
-                         'h_val': h_values[child_loc],
-                         'parent': curr}
                 closed_list[child['loc']] = child['g_val'] + child['h_val']
                 push_node(open_list, child)
 
